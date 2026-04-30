@@ -1,0 +1,28 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('order_items', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('order_id')->constrained()->onDelete('cascade'); // مربوط بالأوردر
+            $table->foreignId('product_id')->nullable()->constrained()->onDelete('set null'); // مربوط بالمنتج
+            
+            $table->string('product_name'); // بنحفظ الاسم والسعر وقت الشراء عشان لو اتغيروا بعدين
+            $table->decimal('price', 10, 2);
+            $table->integer('quantity');
+            
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('order_items');
+    }
+};
