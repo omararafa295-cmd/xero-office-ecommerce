@@ -16,7 +16,7 @@
                 @if($favorite->product)
                 <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden group hover:shadow-lg transition hover:-translate-y-1 relative">
                     <div class="absolute top-3 left-3 z-20">
-                        <form action="{{ route('products.favorite', $favorite->product->id) }}" method="POST">
+                        <form action="{{ route('products.favorite', $favorite->product->id) }}" method="POST" class="favorite-form remove-card-on-success">
                             @csrf
                             <button type="submit" class="w-10 h-10 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-full flex items-center justify-center text-red-600 hover:scale-110 transition shadow-sm" title="{{ __('إزالة من المفضلة') }}">
                                 <i class="fa-solid fa-heart"></i>

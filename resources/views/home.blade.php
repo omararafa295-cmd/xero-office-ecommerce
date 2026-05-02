@@ -112,5 +112,94 @@
         <p class="font-bold text-gray-600 dark:text-gray-400">جميع الحقوق محفوظة &copy; {{ date('Y') }} - Xero Office</p>
     </footer>
 
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // AJAX للمفضلة (إضافة / إزالة)
+            document.querySelectorAll('.favorite-form').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    let url = this.action;
+                    let formData = new FormData(this);
+                    let icon = this.querySelector('i');
+                    let button = this.querySelector('button');
+                    
+                    fetch(url, {
+                        method: 'POST',
+                        body: formData,
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    }).then(response => {
+                        if(response.ok) {
+                            // لو إحنا في صفحة "قائمة المفضلة"، نمسح كارت المنتج فوراً من الشاشة
+                            if (this.classList.contains('remove-card-on-success')) {
+                                this.closest('.group').remove();
+                                return;
+                            }
+                            
+                            // تبديل شكل الأيقونة لباقي الصفحات
+                            if(icon && icon.classList.contains('fa-heart')) {
+                                if(icon.classList.contains('fa-solid')) {
+                                    icon.classList.remove('fa-solid', 'text-red-600');
+                                    icon.classList.add('fa-regular');
+                                } else {
+                                    icon.classList.remove('fa-regular');
+                                    icon.classList.add('fa-solid', 'text-red-600');
+                                }
+                            } else if (button && button.innerText) {
+                                // لصفحة نتائج البحث اللي بتستخدم إيموجي
+                                button.innerText = button.innerText.includes('❤️') ? button.innerText.replace('❤️', '🤍') : button.innerText.replace('🤍', '❤️');
+                            }
+                        } else if (response.status === 401) {
+                            window.location.href = "{{ route('login') }}";
+                        }
+                    }).catch(error => console.error('Error:', error));
+                });
+            });
+
+            // AJAX للإضافة للسلة
+            document.querySelectorAll('.cart-form').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    // لو العميل ضغط "اشتري الآن"، نسيب الصفحة تحمل عشان تحوله لصفحة الدفع
+                    if (e.submitter && e.submitter.name === 'buy_now') return;
+                    
+                    e.preventDefault();
+                    let url = this.action;
+                    let formData = new FormData(this);
+                    
+                    fetch(url, {
+                        method: 'POST',
+                        body: formData,
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    }).then(response => response.json())
+                      .then(data => {
+                          if(data.success) {
+                              // تحديث العداد في الهيدر
+                              let cartLinks = document.querySelectorAll('a[href*="cart"]');
+                              cartLinks.forEach(link => {
+                                  let badge = link.querySelector('span.absolute');
+                                  if (!badge) {
+                                      badge = document.createElement('span');
+                                      badge.className = 'absolute -top-2 -right-3 bg-red-600 text-white text-[10px] font-bold h-4 w-4 flex items-center justify-center rounded-full';
+                                      link.appendChild(badge);
+                                  }
+                                  badge.innerText = data.cart_count;
+                              });
+
+                              // إظهار رسالة Toast منبثقة أسفل الشاشة
+                              let toast = document.createElement('div');
+                              toast.className = 'fixed bottom-5 right-5 bg-gray-900 dark:bg-gray-800 text-white px-6 py-4 rounded-2xl shadow-2xl z-50 flex items-center gap-3 animate-bounce border border-gray-700';
+                              toast.innerHTML = '<i class="fa-solid fa-circle-check text-green-400 text-xl"></i> <span class="font-bold">' + data.message + '</span>';
+                              document.body.appendChild(toast);
+                              
+                              setTimeout(() => {
+                                  toast.style.opacity = '0';
+                                  toast.style.transition = 'opacity 0.5s ease';
+                                  setTimeout(() => toast.remove(), 500);
+                              }, 3000);
+                          }
+                      }).catch(error => console.error('Error:', error));
+                });
+            });
+        });
+    </script>
 </body>
 </html>

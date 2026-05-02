@@ -75,7 +75,7 @@
                 @endif
             </div>
 
-            <form action="{{ route('cart.add', $product->id) }}" method="POST" class="mt-auto flex flex-col gap-4">
+            <form action="{{ route('cart.add', $product->id) }}" method="POST" class="mt-auto flex flex-col gap-4 cart-form">
                 @csrf
                 <input type="hidden" name="product_id" value="{{ $product->id }}">
                 

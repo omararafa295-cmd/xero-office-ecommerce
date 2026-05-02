@@ -41,6 +41,15 @@ class CartController extends Controller
         // 5. نحفظ السلة في الجلسة
         session()->put('cart', $cart);
 
+        // لو الطلب جاي عبر AJAX نرد عليه بـ JSON بدون تحميل الصفحة
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'تم إضافة المنتج للسلة بنجاح!',
+                'cart_count' => count($cart)
+            ]);
+        }
+
         // 6. السحر هنا: لو العميل داس على زرار "اشتري الآن" 
         if($request->has('buy_now')) {
             return redirect()->route('checkout.index'); // يروح لصفحة الدفع فوراً

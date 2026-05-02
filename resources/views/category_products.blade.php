@@ -51,7 +51,7 @@
                 <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm hover:shadow-[0_10px_30px_rgba(220,38,38,0.15)] transition-all duration-300 overflow-hidden border-2 border-gray-100 dark:border-gray-700 hover:border-red-500 dark:hover:border-red-500 relative flex flex-col h-full group">
                     
                     <div class="absolute top-4 left-4 z-20">
-                        <form action="{{ route('products.favorite', $product->id) }}" method="POST">
+                        <form action="{{ route('products.favorite', $product->id) }}" method="POST" class="favorite-form">
                             @csrf
                             <button type="submit" class="w-10 h-10 bg-white border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-500 hover:scale-110 transition-all shadow-sm">
                                 @if(auth()->check() && auth()->user()->favorites->contains('product_id', $product->id)) 
@@ -89,7 +89,7 @@
                             <span class="text-2xl font-black text-red-600">{{ number_format($product->price, 2) }} <span class="text-sm text-gray-500">{{ __('ج.م') }}</span></span>
                         </div>
 
-                        <form action="{{ route('cart.add', $product->id) }}" method="POST">
+                        <form action="{{ route('cart.add', $product->id) }}" method="POST" class="cart-form">
                             @csrf
                             <button type="submit" class="w-full bg-gray-100 border border-gray-200 dark:border-gray-600 text-gray-700 dark:bg-gray-700 dark:text-white hover:bg-red-600 hover:text-white hover:border-red-600 dark:hover:bg-red-600 font-bold py-3 px-4 rounded-xl transition-all flex justify-center items-center gap-2 shadow-sm">
                                 <i class="fa-solid fa-cart-plus"></i> {{ __('أضف للسلة') }}
