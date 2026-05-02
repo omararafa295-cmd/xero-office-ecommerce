@@ -63,4 +63,4 @@ php artisan migrate
 php artisan storage:link
 php artisan serve
 
-   Visit http://localhost:8000 in your browser.
+🌍 Visit http://localhost:8000 in your browser to see the application running
