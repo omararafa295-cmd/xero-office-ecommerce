@@ -49,20 +49,18 @@ A modern, full-featured E-commerce platform built from scratch to provide a seam
 
 ---
 
-## 🚀 Installation & Setup
-
 Follow these steps to run the project locally on your machine:
 
- **Clone the repository**
-   ```bash
-   git clone [https://github.com/YourUsername/xero-office-ecommerce.git](https://github.com/YourUsername/xero-office-ecommerce.git)
-   cd xero-office-ecommerce
-   
-   composer install
-   cp .env.example .env
-   php artisan key:generate
-   php artisan migrate
-   php artisan storage:link
-   php artisan serve
+**Clone the repository & Setup:**
+```bash
+git clone [https://github.com/omararafa295-cmd/xero-office-ecommerce.git](https://github.com/omararafa295-cmd/xero-office-ecommerce.git)
+cd xero-office-ecommerce
+
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+php artisan storage:link
+php artisan serve
 
    Visit http://localhost:8000 in your browser.
