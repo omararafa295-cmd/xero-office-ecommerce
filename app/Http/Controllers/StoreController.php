@@ -33,7 +33,7 @@ class StoreController extends Controller
         // جلب منتجات مشابهة (من نفس القسم) عشان نشجع العميل يشتري أكتر
         $related_products = Product::where('category_id', $product->category_id)
                                    ->where('id', '!=', $id)
-                                   ->take(4)
+                                   ->take(10)
                                    ->get();
 
         return view('product', compact('product', 'related_products'));

@@ -205,6 +205,82 @@
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- بداية سكشن منتجات ذات صلة -->
+    <!-- ========================================== -->
+    @if(isset($related_products) && $related_products->count() > 0)
+    <div class="mt-20 pt-12 border-t border-gray-200 dark:border-gray-800">
+        <div class="flex items-center justify-between mb-8">
+            <h3 class="text-2xl md:text-3xl font-black text-gray-900 dark:text-white">{{ __('منتجات ذات صلة') }}</h3>
+            <div class="flex items-center gap-4">
+                <!-- أزرار التقليب -->
+                <div class="hidden sm:flex items-center gap-2">
+                    <button onclick="scrollRelatedProducts('prev')" class="w-10 h-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full flex items-center justify-center text-gray-500 hover:text-red-600 hover:border-red-600 transition-all shadow-sm group">
+                        <i class="{{ app()->getLocale() == 'ar' ? 'fa-solid fa-chevron-right' : 'fa-solid fa-chevron-left' }} group-hover:scale-110 transition-transform"></i>
+                    </button>
+                    <button onclick="scrollRelatedProducts('next')" class="w-10 h-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full flex items-center justify-center text-gray-500 hover:text-red-600 hover:border-red-600 transition-all shadow-sm group">
+                        <i class="{{ app()->getLocale() == 'ar' ? 'fa-solid fa-chevron-left' : 'fa-solid fa-chevron-right' }} group-hover:scale-110 transition-transform"></i>
+                    </button>
+                </div>
+                
+                @if($product->category)
+                <a href="{{ route('category.show', $product->category->name_en) }}" class="text-red-600 hover:text-red-700 font-bold flex items-center gap-2 transition-colors">
+                    {{ __('عرض الكل') }} <i class="{{ app()->getLocale() == 'ar' ? 'fa-solid fa-arrow-left' : 'fa-solid fa-arrow-right' }}"></i>
+                </a>
+                @endif
+            </div>
+        </div>
+
+        <div id="related-products-container" class="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4 hide-scrollbar">
+            @foreach($related_products as $related_product)
+                <div class="flex-none w-[85%] sm:w-[calc(50%-12px)] md:w-[calc(33.333%-16px)] lg:w-[calc(25%-18px)] snap-start bg-white dark:bg-gray-800 rounded-3xl shadow-sm border-2 border-gray-200 dark:border-gray-700 hover:border-red-500 dark:hover:border-red-500 overflow-hidden group hover:shadow-[0_10px_30px_rgba(220,38,38,0.15)] transition-all duration-300 relative flex flex-col">
+                    <div class="absolute top-4 left-4 z-20">
+                        <form action="{{ route('products.favorite', $related_product->id) }}" method="POST" class="favorite-form">
+                            @csrf
+                            <button type="submit" class="w-10 h-10 bg-white border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-500 hover:scale-110 transition-all shadow-sm">
+                                @if(auth()->check() && auth()->user()->favorites->contains('product_id', $related_product->id)) 
+                                    <i class="fa-solid fa-heart text-red-600"></i>
+                                @else 
+                                    <i class="fa-regular fa-heart"></i>
+                                @endif
+                            </button>
+                        </form>
+                    </div>
+                    <a href="{{ route('product.show', $related_product->id) }}" class="relative h-56 overflow-hidden block bg-gray-50 dark:bg-gray-900/80 p-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-center">
+                        @if($related_product->image)
+                            <img src="{{ asset('storage/' . $related_product->image) }}" alt="{{ app()->getLocale() == 'ar' ? $related_product->name_ar : $related_product->name_en }}" class="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500">
+                        @else
+                            <div class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-600"><i class="fa-solid fa-image text-4xl mb-2"></i></div>
+                        @endif
+                    </a>
+                    <div class="p-6 flex flex-col flex-grow">
+                        <span class="text-xs font-bold text-gray-400 dark:text-gray-500 mb-2">
+                            {{ $related_product->category ? (app()->getLocale() == 'ar' ? $related_product->category->name_ar : $related_product->category->name_en) : __('عام') }}
+                        </span>
+                        <a href="{{ route('product.show', $related_product->id) }}">
+                            <h3 class="font-bold text-lg text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-red-600 transition-colors">{{ app()->getLocale() == 'ar' ? $related_product->name_ar : $related_product->name_en }}</h3>
+                        </a>
+                        <div class="mt-auto pt-4 flex justify-between items-end">
+                            <div class="flex flex-col">
+                                @if($related_product->old_price && $related_product->old_price > $related_product->price)
+                                    <span class="text-sm text-gray-400 dark:text-gray-500 line-through font-bold mb-0.5">{{ number_format($related_product->old_price, 2) }} {{ __('ج.م') }}</span>
+                                @endif
+                                <span class="text-2xl font-black text-red-600">{{ number_format($related_product->price, 2) }} <span class="text-sm text-gray-500">{{ __('ج.م') }}</span></span>
+                            </div>
+                            <form action="{{ route('cart.add', $related_product->id) }}" method="POST" class="cart-form">
+                                @csrf
+                                <button type="submit" class="bg-gray-100 border border-gray-200 dark:border-gray-600 text-gray-700 dark:bg-gray-700 dark:text-white hover:bg-red-600 hover:text-white hover:border-red-600 dark:hover:bg-red-600 w-12 h-12 rounded-2xl flex items-center justify-center transition-all shadow-sm group/btn">
+                                    <i class="fa-solid fa-cart-plus group-hover/btn:scale-110 transition-transform"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
     <style>
         .star-rating input { display: none; }
         .star-rating label { color: #d1d5db; cursor: pointer; font-size: 1.5rem; padding: 0 0.1rem; transition: color 0.2s ease-in-out; }
@@ -212,6 +288,26 @@
         .star-rating label:hover,
         .star-rating label:hover ~ label,
         .star-rating input:checked ~ label { color: #facc15; }
+        
+        /* إخفاء شريط التمرير للكاروسيل مع الحفاظ على إمكانية التمرير */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
+
+    <script>
+        function scrollRelatedProducts(direction) {
+            const container = document.getElementById('related-products-container');
+            const card = container.querySelector('.flex-none');
+            if (!card) return;
+            
+            const scrollAmount = card.offsetWidth + 24; // عرض الكارت + المسافة (gap-6 = 24px)
+            const isRtl = "{{ app()->getLocale() }}" === "ar";
+            
+            let delta = direction === 'next' ? scrollAmount : -scrollAmount;
+            if (isRtl) delta = -delta; // عكس الاتجاه للغة العربية
+            
+            container.scrollBy({ left: delta, behavior: 'smooth' });
+        }
+    </script>
 </div>
 @endsection
