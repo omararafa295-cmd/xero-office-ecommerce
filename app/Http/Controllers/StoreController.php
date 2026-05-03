@@ -19,7 +19,7 @@ class StoreController extends Controller
         // جلب أحدث 8 منتجات نشطة فقط
         $products = Product::where('is_active', 1)
                            ->latest()
-                           ->take(8)
+                           ->take(12)
                            ->get();
         
         // توجيه البيانات لصفحة welcome

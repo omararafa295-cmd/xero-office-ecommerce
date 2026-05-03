@@ -176,14 +176,25 @@
 </div>
 
 <div id="products" class="max-w-7xl mx-auto px-4 py-16">
-    <div class="text-center mb-12" data-aos="fade-up">
-        <h2 class="text-4xl font-black text-gray-900 dark:text-white mb-4 transition-colors">{{ __('أحدث المنتجات') }}</h2>
-        <div class="h-1.5 w-20 bg-red-600 mx-auto rounded-full"></div>
+    <div class="flex flex-col sm:flex-row items-center justify-between mb-12 gap-6" data-aos="fade-up">
+        <div class="text-center sm:text-{{ app()->getLocale() == 'ar' ? 'right' : 'left' }}">
+            <h2 class="text-4xl font-black text-gray-900 dark:text-white mb-4 transition-colors">{{ __('أحدث المنتجات') }}</h2>
+            <div class="h-1.5 w-20 bg-red-600 mx-auto sm:mx-0 rounded-full"></div>
+        </div>
+        <!-- أزرار التقليب -->
+        <div class="hidden sm:flex items-center gap-2">
+            <button onclick="scrollLatestProducts('prev')" class="w-12 h-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full flex items-center justify-center text-gray-500 hover:text-red-600 hover:border-red-600 transition-all shadow-sm group">
+                <i class="{{ app()->getLocale() == 'ar' ? 'fa-solid fa-chevron-right' : 'fa-solid fa-chevron-left' }} group-hover:scale-110 transition-transform"></i>
+            </button>
+            <button onclick="scrollLatestProducts('next')" class="w-12 h-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full flex items-center justify-center text-gray-500 hover:text-red-600 hover:border-red-600 transition-all shadow-sm group">
+                <i class="{{ app()->getLocale() == 'ar' ? 'fa-solid fa-chevron-left' : 'fa-solid fa-chevron-right' }} group-hover:scale-110 transition-transform"></i>
+            </button>
+        </div>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+    <div id="latest-products-container" class="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-8 hide-scrollbar">
         @foreach($products as $index => $product)
-            <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-md border-2 border-gray-200 dark:border-gray-700 hover:border-red-500 dark:hover:border-red-500 overflow-hidden group hover:shadow-[0_10px_30px_rgba(220,38,38,0.15)] transition-all duration-300 relative flex flex-col" data-aos="zoom-in" data-aos-delay="{{ $index * 100 }}">
+            <div class="flex-none w-[85%] sm:w-[calc(50%-12px)] md:w-[calc(33.333%-16px)] lg:w-[calc(25%-18px)] snap-start bg-white dark:bg-gray-800 rounded-3xl shadow-md border-2 border-gray-200 dark:border-gray-700 hover:border-red-500 dark:hover:border-red-500 overflow-hidden group hover:shadow-[0_10px_30px_rgba(220,38,38,0.15)] transition-all duration-300 relative flex flex-col" data-aos="zoom-in" data-aos-delay="{{ $index * 100 }}">
                 <div class="absolute top-4 left-4 z-20">
                     <form action="{{ route('products.favorite', $product->id) }}" method="POST" class="favorite-form">
                         @csrf
@@ -306,6 +317,10 @@
         100% { transform: translateX(100%); }
     }
     .animate-marquee { animation: marquee 25s linear infinite; }
+    
+    /* إخفاء شريط التمرير للكاروسيل */
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 </style>
 
 <script>
@@ -338,5 +353,19 @@
             document.getElementById("seconds").innerText = seconds < 10 ? "0" + seconds : seconds;
         }, 1000);
     });
+
+    function scrollLatestProducts(direction) {
+        const container = document.getElementById('latest-products-container');
+        const card = container.querySelector('.flex-none');
+        if (!card) return;
+        
+        const scrollAmount = card.offsetWidth + 24; 
+        const isRtl = "{{ app()->getLocale() }}" === "ar";
+        
+        let delta = direction === 'next' ? scrollAmount : -scrollAmount;
+        if (isRtl) delta = -delta; 
+        
+        container.scrollBy({ left: delta, behavior: 'smooth' });
+    }
 </script>
 @endsection
