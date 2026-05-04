@@ -30,18 +30,43 @@
         <h1 class="text-4xl font-black text-gray-900 dark:text-white">{{ __('قسم') }} {{ app()->getLocale() == 'ar' ? $category->name_ar : $category->name_en }}</h1>
     </div>
 
-    <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 mb-8">
-        <form action="" method="GET" class="flex flex-wrap items-end gap-4">
-            <div class="flex-1 min-w-[150px]">
-                <label class="block text-xs font-bold mb-2 opacity-50">{{ __('أقل سعر') }}</label>
-                <input type="number" name="min_price" value="{{ request('min_price') }}" class="w-full p-3 bg-gray-50 dark:bg-gray-900 border-none rounded-xl outline-none">
+    <div class="bg-white dark:bg-gray-800 p-5 md:p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 mb-8 flex flex-col lg:flex-row justify-between items-center gap-6">
+        
+        <div class="flex items-center gap-4 w-full lg:w-auto">
+            <div class="w-12 h-12 bg-gray-50 dark:bg-gray-700/50 rounded-2xl flex items-center justify-center text-gray-500 dark:text-gray-400">
+                <i class="fa-solid fa-sliders text-xl"></i>
             </div>
-            <div class="flex-1 min-w-[150px]">
-                <label class="block text-xs font-bold mb-2 opacity-50">{{ __('أعلى سعر') }}</label>
-                <input type="number" name="max_price" value="{{ request('max_price') }}" class="w-full p-3 bg-gray-50 dark:bg-gray-900 border-none rounded-xl outline-none">
+            <div>
+                <h3 class="font-black text-gray-900 dark:text-white text-lg">{{ __('تصفية المنتجات') }}</h3>
+                <p class="text-xs font-bold text-gray-500">{{ __('ابحث حسب نطاق السعر المناسب') }}</p>
             </div>
-            <button type="submit" class="bg-red-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-red-700 transition">{{ __('تطبيق الفلتر') }}</button>
-            <a href="{{ url()->current() }}" class="p-3 text-gray-400 hover:text-red-600 font-bold">{{ __('مسح') }}</a>
+        </div>
+
+        <form action="" method="GET" class="flex flex-col sm:flex-row flex-wrap items-center gap-4 w-full lg:w-auto">
+            
+            <div class="flex items-center gap-2 w-full sm:w-auto bg-gray-50 dark:bg-gray-900/50 p-1.5 rounded-2xl border border-gray-100 dark:border-gray-700">
+                <div class="relative w-full sm:w-32 md:w-40">
+                    <span class="absolute inset-y-0 {{ app()->getLocale() == 'ar' ? 'right-3' : 'left-3' }} flex items-center text-gray-400 text-xs font-bold pointer-events-none">{{ __('من') }}</span>
+                    <input type="number" name="min_price" value="{{ request('min_price') }}" placeholder="0" class="w-full py-2.5 px-3 {{ app()->getLocale() == 'ar' ? 'pr-9 pl-3' : 'pl-9 pr-3' }} bg-white dark:bg-gray-800 border-none rounded-xl focus:ring-2 focus:ring-red-500 dark:text-white outline-none transition text-sm font-bold text-center shadow-sm">
+                </div>
+                <span class="text-gray-300 dark:text-gray-600 font-bold">-</span>
+                <div class="relative w-full sm:w-32 md:w-40">
+                    <span class="absolute inset-y-0 {{ app()->getLocale() == 'ar' ? 'right-3' : 'left-3' }} flex items-center text-gray-400 text-xs font-bold pointer-events-none">{{ __('إلى') }}</span>
+                    <input type="number" name="max_price" value="{{ request('max_price') }}" placeholder="10000" class="w-full py-2.5 px-3 {{ app()->getLocale() == 'ar' ? 'pr-9 pl-3' : 'pl-9 pr-3' }} bg-white dark:bg-gray-800 border-none rounded-xl focus:ring-2 focus:ring-red-500 dark:text-white outline-none transition text-sm font-bold text-center shadow-sm">
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+                <button type="submit" class="flex-1 sm:flex-none bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-2xl font-black transition shadow-[0_4px_15px_rgba(220,38,38,0.2)] hover:-translate-y-0.5 flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-solid fa-filter"></i> {{ __('تطبيق الفلتر') }}
+                </button>
+                
+                @if(request()->filled('min_price') || request()->filled('max_price'))
+                    <a href="{{ url()->current() }}" class="flex-none bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 w-11 h-11 rounded-2xl font-bold transition flex items-center justify-center" title="{{ __('مسح الفلتر') }}">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </a>
+                @endif
+            </div>
         </form>
     </div>
     

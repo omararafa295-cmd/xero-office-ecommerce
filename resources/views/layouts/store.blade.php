@@ -104,7 +104,7 @@
 
             <div class="flex items-center gap-3 md:gap-5">
                 <form action="{{ route('search') }}" method="GET" class="hidden lg:flex items-center relative group w-64 z-50">
-                    <input type="text" id="searchInput" name="query" autocomplete="off" placeholder="{{ __('ابحث عن طابعة، حبر...') }}" class="bg-gray-100 dark:bg-gray-700 border-none rounded-xl py-2 px-4 pr-10 w-full focus:ring-2 focus:ring-red-600 transition-all outline-none dark:text-white text-sm relative z-20">
+                    <input type="text" id="searchInput" name="query" autocomplete="off" placeholder="{{ __('ابحث عن طابعة، حبر...') }}" class="bg-gray-100 dark:bg-gray-700 border-none rounded-xl py-2 w-full focus:ring-2 focus:ring-red-600 transition-all outline-none dark:text-white text-sm relative z-20 {{ app()->getLocale() == 'ar' ? 'pr-10 pl-4' : 'pl-10 pr-4' }}">
                     <button type="submit" class="absolute {{ app()->getLocale() == 'ar' ? 'right-4' : 'left-4' }} text-gray-400 group-hover:text-red-600 transition-colors z-20">
                         <i class="fa-solid fa-magnifying-glass"></i>
                     </button>
@@ -138,16 +138,21 @@
                         <span class="absolute -top-2 {{ app()->getLocale() == 'ar' ? '-left-2' : '-right-2' }} bg-gray-900 dark:bg-gray-600 text-white text-[10px] font-bold h-4 w-4 flex items-center justify-center rounded-full shadow-sm">{{ count(session('cart')) }}</span>
                     @endif
                 </a>
-                <div class="hidden md:flex items-center justify-center border-l border-gray-200 dark:border-gray-700 pl-3 ml-1">
-                    @if(app()->getLocale() == 'ar')
-                        <a href="{{ route('lang.switch', 'en') }}" class="font-black text-gray-500 hover:text-red-600 dark:text-gray-400 transition text-lg mt-1" title="English">
-                            EN
+                <div class="hidden md:block relative group border-l border-gray-200 dark:border-gray-700 pl-3 ml-1">
+                    <button class="flex items-center gap-1.5 font-bold text-gray-700 dark:text-gray-200 hover:text-red-600 transition text-sm py-2">
+                        <i class="fa-solid fa-globe text-lg"></i>
+                        <span class="uppercase mt-0.5">{{ app()->getLocale() == 'ar' ? 'AR' : 'EN' }}</span>
+                        <i class="fa-solid fa-chevron-down text-[10px] opacity-60 group-hover:rotate-180 transition-transform duration-300 mt-0.5"></i>
+                    </button>
+                    
+                    <div class="absolute left-0 mt-2 w-32 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 overflow-hidden z-50">
+                        <a href="{{ route('lang.switch', 'ar') }}" class="block px-4 py-3 text-sm font-bold {{ app()->getLocale() == 'ar' ? 'text-red-600 bg-red-50 dark:bg-gray-700' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700' }} border-b border-gray-100 dark:border-gray-700 transition-colors">
+                            العربية
                         </a>
-                    @else
-                        <a href="{{ route('lang.switch', 'ar') }}" class="font-black text-gray-500 hover:text-red-600 dark:text-gray-400 transition text-xl" title="عربي">
-                            ع
+                        <a href="{{ route('lang.switch', 'en') }}" class="block px-4 py-3 text-sm font-bold {{ app()->getLocale() == 'en' ? 'text-red-600 bg-red-50 dark:bg-gray-700' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700' }} transition-colors">
+                            English
                         </a>
-                    @endif
+                    </div>
                 </div>
 
                
@@ -198,7 +203,7 @@
         <!-- مربع البحث المنسدل للموبايل (مخفي افتراضيا) -->
         <div id="mobileSearchContainer" class="hidden lg:hidden absolute top-full left-0 w-full bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 p-4 shadow-md transition-all z-40">
             <form action="{{ route('search') }}" method="GET" class="relative w-full">
-                <input type="text" id="mobileSearchInput" name="query" autocomplete="off" placeholder="{{ __('ابحث عن طابعة، حبر...') }}" class="bg-gray-100 dark:bg-gray-700 border-none rounded-xl py-3 px-4 w-full focus:ring-2 focus:ring-red-600 transition-all outline-none dark:text-white text-sm">
+                <input type="text" id="mobileSearchInput" name="query" autocomplete="off" placeholder="{{ __('ابحث عن طابعة، حبر...') }}" class="bg-gray-100 dark:bg-gray-700 border-none rounded-xl py-3 w-full focus:ring-2 focus:ring-red-600 transition-all outline-none dark:text-white text-sm {{ app()->getLocale() == 'ar' ? 'pl-12 pr-4' : 'pr-12 pl-4' }}">
                 <button type="submit" class="absolute {{ app()->getLocale() == 'ar' ? 'left-4' : 'right-4' }} top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-red-600 transition-colors">
                     <i class="fa-solid fa-magnifying-glass"></i>
                 </button>
