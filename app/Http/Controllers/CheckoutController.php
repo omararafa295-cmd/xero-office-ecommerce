@@ -29,17 +29,37 @@ class CheckoutController extends Controller
         // 1. التأكد من البيانات
         $request->validate([
             'phone' => 'required|string|max:20',
+            'governorate' => 'required|string',
             'address' => 'required|string|max:255',
         ]);
 
         $cart = session()->get('cart');
         if (!$cart) return redirect()->route('home');
 
+        // أسعار الشحن
+        $shippingCosts = [
+            'الشرقية' => 40,
+            'القاهرة' => 70,
+            'الجيزة' => 80,
+            'الإسكندرية' => 100,
+            'الدقهلية' => 60,
+            'القليوبية' => 60,
+            'المنوفية' => 60,
+            'الغربية' => 60,
+            'باقي المحافظات' => 80,
+        ];
+
+        $gov = $request->governorate;
+        $shippingCost = $shippingCosts[$gov] ?? 80;
+
         // 2. حساب الإجمالي الكلي
         $total = 0;
         foreach ($cart as $details) {
             $total += $details['price'] * $details['quantity'];
         }
+        
+        $totalAmount = $total + $shippingCost;
+        $fullAddress = $gov . ' - ' . $request->address;
 
         // 3. إنشاء الطلب الأساسي
         $order = Order::create([
@@ -47,8 +67,8 @@ class CheckoutController extends Controller
             'customer_name' => auth()->user()->name,
             'customer_phone' => $request->phone,
             'customer_email' => auth()->user()->email, // ضفناها عشان موجودة في الجدول
-            'shipping_address' => $request->address,   // ده الاسم الصح للعنوان عندك
-            'total_amount' => $total,
+            'shipping_address' => $fullAddress,   // تم دمج المحافظة مع العنوان
+            'total_amount' => $totalAmount,
             'payment_method' => 'cash',              // ضفناها عشان موجودة في الجدول
             'status' => 'pending'                    // شيلنا الـ notes خالص عشان مش في الجدول
         ]);

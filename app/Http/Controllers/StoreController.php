@@ -69,7 +69,7 @@ class StoreController extends Controller
     }
 
     $products = $query->paginate(12);
-    return view('category_products', compact('category', 'products'));
+    return view('category_products00', compact('category', 'products'));
 }
     // دالة إرجاع اقتراحات البحث كـ JSON
     public function searchSuggestions(Request $request)
