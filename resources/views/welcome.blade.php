@@ -18,15 +18,15 @@
         {{ __('🚀 الخيار الأول لحلول الطباعة') }}
     </span>
     
-    <h1 class="text-3xl sm:text-4xl md:text-6xl font-black text-gray-900 dark:text-white mb-4 md:mb-6 leading-tight px-2">
+    <h1 class="text-2xl sm:text-4xl md:text-6xl font-black text-gray-900 dark:text-white mb-4 md:mb-6 leading-tight px-2">
         {{ __('اكتشف عالم الطباعة') }} <br> <span class="text-red-600">{{ __('الاحترافي') }}</span>
     </h1>
     
-    <p class="text-gray-600 dark:text-gray-300 font-bold text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-8 md:mb-10 px-4">
+    <p class="text-gray-600 dark:text-gray-300 font-bold text-sm sm:text-lg md:text-xl max-w-2xl mx-auto mb-8 md:mb-10 px-4">
         {{ __('أفضل الطابعات، أحبار أصلية، وقطع غيار بضمان حقيقي. كل ما يحتاجه مكتبك في مكان واحد.') }}
     </p>
     
-    <a href="#categories" class="inline-flex items-center gap-2 md:gap-3 bg-red-600 hover:bg-red-700 text-white px-6 py-3 md:px-8 md:py-4 rounded-xl font-bold transition-all shadow-[0_8px_20px_rgba(220,38,38,0.3)] hover:-translate-y-1 text-base md:text-lg">
+    <a href="#categories" class="inline-flex items-center gap-2 md:gap-3 bg-red-600 hover:bg-red-700 text-white px-6 py-3 md:px-8 md:py-4 rounded-xl font-bold transition-all shadow-[0_8px_20px_rgba(220,38,38,0.3)] hover:-translate-y-1 text-sm md:text-lg">
         {{ __('تصفح المنتجات') }} <i class="fa-solid fa-arrow-down-long animate-bounce"></i>
     </a>
 </div>
@@ -44,15 +44,15 @@
             {{ __('عرض خاص لفترة محدودة ⏱️') }}
         </span>
         
-        <h2 class="text-2xl sm:text-3xl md:text-5xl font-black text-gray-900 dark:text-white mb-4 md:mb-6 leading-tight">
+        <h2 class="text-xl sm:text-3xl md:text-5xl font-black text-gray-900 dark:text-white mb-4 md:mb-6 leading-tight">
             {{ __('طابعات') }} <br> <span class="text-red-600">Xero LaserJet</span> <br> {{ __('جيل جديد من الكفاءة') }}
         </h2>
         
-        <p class="text-gray-600 dark:text-gray-300 font-bold mb-6 md:mb-8 text-base sm:text-lg md:text-xl leading-relaxed">
+        <p class="text-gray-600 dark:text-gray-300 font-bold mb-6 md:mb-8 text-sm sm:text-lg md:text-xl leading-relaxed">
             {{ __('استمتع بأداء لا يضاهى مع أحدث تقنيات الطباعة الليزر. توفير في الحبر، سرعة في الإنجاز، وجودة تدوم طويلاً.') }}
         </p>
         
-        <a href="#shop" class="inline-flex items-center gap-2 md:gap-3 bg-gray-900 dark:bg-gray-100 hover:bg-red-600 dark:hover:bg-red-600 text-white dark:text-gray-900 hover:text-white px-6 py-3 md:px-8 md:py-4 rounded-xl font-bold transition-colors shadow-md text-base md:text-lg">
+        <a href="#shop" class="inline-flex items-center gap-2 md:gap-3 bg-gray-900 dark:bg-gray-100 hover:bg-red-600 dark:hover:bg-red-600 text-white dark:text-gray-900 hover:text-white px-6 py-3 md:px-8 md:py-4 rounded-xl font-bold transition-colors shadow-md text-sm md:text-lg">
             {{ __('ابدأ التسوق') }} <i class="{{ app()->getLocale() == 'ar' ? 'fa-solid fa-arrow-left' : 'fa-solid fa-arrow-right' }}"></i>
         </a>
     </div>
@@ -99,7 +99,7 @@
 
 <div id="categories" class="max-w-7xl mx-auto px-4 py-12 scroll-mt-20">
     <div class="text-center mb-12" data-aos="fade-up">
-    <h2 class="text-2xl md:text-4xl font-black text-gray-900 dark:text-white mb-4 transition-colors">{{ __('تسوق حسب القسم') }}</h2>
+    <h2 class="text-xl md:text-4xl font-black text-gray-900 dark:text-white mb-4 transition-colors">{{ __('تسوق حسب القسم') }}</h2>
     <div class="h-1.5 w-20 bg-red-600 mx-auto rounded-full"></div>
 </div>
 </div>
@@ -115,7 +115,7 @@
             <div class="w-16 h-16 md:w-24 md:h-24 bg-gray-50 dark:bg-gray-900/50 rounded-xl md:rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4 transition-all duration-500 group-hover:scale-110 p-2 md:p-3 relative overflow-hidden">
                 <img src="{{ $category->image ? asset('storage/' . $category->image) : asset('images/logo.png') }}" alt="{{ app()->getLocale() == 'ar' ? $category->name_ar : $category->name_en }}" class="w-full h-full object-contain drop-shadow-lg relative z-10">
             </div>
-            <h3 class="font-black text-sm md:text-lg text-gray-900 dark:text-white group-hover:text-red-600 transition-colors">{{ app()->getLocale() == 'ar' ? $category->name_ar : $category->name_en }}</h3>
+            <h3 class="font-black text-xs sm:text-sm md:text-lg text-gray-900 dark:text-white group-hover:text-red-600 transition-colors">{{ app()->getLocale() == 'ar' ? $category->name_ar : $category->name_en }}</h3>
         </a>
         @endforeach
     </div>
@@ -149,8 +149,8 @@
             <div class="inline-flex items-center gap-2 bg-black/30 backdrop-blur text-white px-4 py-2 rounded-full text-sm font-bold mb-6 border border-white/10">
                 <i class="fa-solid fa-bolt text-yellow-400 animate-pulse"></i> {{ __('عرض الفلاش السريع') }}
             </div>
-            <h2 class="text-2xl sm:text-4xl md:text-5xl font-black text-white leading-tight mb-3 md:mb-4">{{ __('خصم 30% على أحبار') }}<br>{{ __('الجيل الجديد') }}</h2>
-            <p class="text-red-100 font-bold text-sm sm:text-base md:text-lg mb-6 md:mb-8">{{ __('العرض ينتهي قريباً، اغتنم الفرصة الآن قبل نفاذ الكمية!') }}</p>
+            <h2 class="text-xl sm:text-4xl md:text-5xl font-black text-white leading-tight mb-3 md:mb-4">{{ __('خصم 30% على أحبار') }}<br>{{ __('الجيل الجديد') }}</h2>
+            <p class="text-red-100 font-bold text-xs sm:text-base md:text-lg mb-6 md:mb-8">{{ __('العرض ينتهي قريباً، اغتنم الفرصة الآن قبل نفاذ الكمية!') }}</p>
             
             <div id="timer-container" class="flex gap-2 sm:gap-4 {{ app()->getLocale() == 'ar' ? 'justify-end md:justify-start' : 'justify-start' }}" dir="ltr">
                 <div class="bg-white/10 backdrop-blur border border-white/20 rounded-xl sm:rounded-2xl w-16 h-16 sm:w-20 sm:h-20 flex flex-col items-center justify-center">
@@ -178,7 +178,7 @@
 <div id="products" class="max-w-7xl mx-auto px-4 py-16">
     <div class="flex flex-col sm:flex-row items-center justify-between mb-12 gap-6" data-aos="fade-up">
         <div class="text-center sm:text-{{ app()->getLocale() == 'ar' ? 'right' : 'left' }}">
-            <h2 class="text-2xl md:text-4xl font-black text-gray-900 dark:text-white mb-4 transition-colors">{{ __('أحدث المنتجات') }}</h2>
+            <h2 class="text-xl md:text-4xl font-black text-gray-900 dark:text-white mb-4 transition-colors">{{ __('أحدث المنتجات') }}</h2>
             <div class="h-1.5 w-20 bg-red-600 mx-auto sm:mx-0 rounded-full"></div>
         </div>
         <!-- أزرار التقليب -->
@@ -215,7 +215,7 @@
                         {{ $product->category ? (app()->getLocale() == 'ar' ? $product->category->name_ar : $product->category->name_en) : __('عام') }}
                     </span>
                     <a href="{{ route('product.show', $product->id) }}">
-                        <h3 class="font-bold text-base sm:text-lg text-gray-900 dark:text-white mb-1 sm:mb-2 line-clamp-2 group-hover:text-red-600 transition-colors">{{ app()->getLocale() == 'ar' ? $product->name_ar : $product->name_en }}</h3>
+                        <h3 class="font-bold text-sm sm:text-lg text-gray-900 dark:text-white mb-1 sm:mb-2 line-clamp-2 group-hover:text-red-600 transition-colors">{{ app()->getLocale() == 'ar' ? $product->name_ar : $product->name_en }}</h3>
                     </a>
                    <div class="mt-auto pt-4 flex justify-between items-end">
                         
@@ -249,7 +249,7 @@
                 <i class="fa-solid fa-building text-xl"></i>
             </div>
             
-            <h2 class="text-2xl md:text-3xl font-black text-gray-900 dark:text-white mb-4 md:mb-5">
+            <h2 class="text-xl md:text-3xl font-black text-gray-900 dark:text-white mb-4 md:mb-5">
                 {{ __('من نحن') }}
                 <div class="w-12 h-1 bg-red-600 mx-auto mt-3 rounded-full"></div>
             </h2>
