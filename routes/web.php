@@ -13,6 +13,7 @@ use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Http\Controllers\ReviewController;
 
     // 1. الصفحة الرئيسية
     Route::get('/', [StoreController::class, 'index'])->name('home');
@@ -37,16 +38,19 @@ use Illuminate\Support\Facades\Hash;
     // استقبال الداتا والبحث عن الطلب
     Route::post('/track-order', [OrderController::class, 'trackResult'])->name('order.track.result');
     // 3. مسارات تتطلب تسجيل الدخول (العميل العادي)
-Route::middleware(['auth'])->group(function () {
-    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
-    Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
-    Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
-    
-    Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
-    Route::put('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
-    // تتبع الطلبات والمفضلة
-    Route::get('/my-orders', [OrderController::class, 'myOrders'])->name('my.orders');
-    Route::post('/products/{id}/favorite', [ProductController::class, 'toggleFavorite'])->name('products.favorite');
+Route::middleware(['auth'])->group(function () { // هذا الجروب للمستخدمين المسجلين دخول
+    Route::middleware(['verified'])->group(function () { // هذا الجروب للمستخدمين الذين أكدوا بريدهم الإلكتروني
+        Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+        Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+        Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
+        
+        Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+        // تتبع الطلبات والمفضلة
+        Route::get('/my-orders', [OrderController::class, 'myOrders'])->name('my.orders');
+        Route::post('/products/{id}/favorite', [ProductController::class, 'toggleFavorite'])->name('products.favorite');
+        Route::post('/product/{product}/review', [ReviewController::class, 'store'])->name('reviews.store');
+    });
 });
     Route::get('lang/{locale}', function ($locale) {
     // التأكد إن اللغة المبعوتة هي عربي أو إنجليزي فقط
@@ -99,6 +103,5 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     
     Auth::login($user);
     return redirect()->route('home')->with('success', 'تم تسجيل الدخول بنجاح!');
-});
-    Route::post('/product/{product}/review', [App\Http\Controllers\ReviewController::class, 'store'])->name('reviews.store')->middleware('auth');
+}); // تم نقل مسار reviews.store إلى جروب verified
     require __DIR__.'/auth.php';

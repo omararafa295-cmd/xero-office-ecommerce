@@ -278,7 +278,7 @@
                                   let badge = link.querySelector('span.absolute');
                                   if (!badge) {
                                       badge = document.createElement('span');
-                                      badge.className = 'absolute -top-2 ' + (document.documentElement.lang === 'ar' ? '-left-3' : '-right-3') + ' bg-red-600 text-white text-[10px] font-bold h-4 w-4 flex items-center justify-center rounded-full';
+                                      badge.className = 'absolute -top-1 ' + (document.documentElement.lang === 'ar' ? '-left-1' : '-right-1') + ' bg-red-600 text-white text-[10px] font-bold h-4 w-4 flex items-center justify-center rounded-full';
                                       link.appendChild(badge);
                                   }
                                   badge.innerText = data.cart_count;

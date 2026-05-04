@@ -10,7 +10,7 @@
         <h1 class="text-3xl font-black text-gray-900 dark:text-white">{{ __('سلة المشتريات') }}</h1>
     </div>
 
-    @if(session('cart') && count(session('cart')) > 0)
+    @if(count($cartItems) > 0)
         <div class="bg-white dark:bg-gray-800 rounded-[2rem] shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-right" dir="{{ app()->getLocale() == 'ar' ? 'rtl' : 'ltr' }}">
@@ -23,19 +23,17 @@
                             <th class="p-5 font-bold text-center">{{ __('حذف') }}</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-50 dark:divide-gray-700 dark:text-white">
-                        @php $total = 0; @endphp
-                        @foreach(session('cart') as $id => $details)
-                            @php $total += $details['price'] * $details['quantity']; @endphp
+                    <tbody class="divide-y divide-gray-50 dark:divide-gray-700 dark:text-white"> {{-- $total is passed from controller --}}
+                        @foreach($cartItems as $item)
                             <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-700/30 transition-colors">
                                 <td class="p-5 font-black text-gray-900 dark:text-white">
-                                    {{ app()->getLocale() == 'ar' ? $details['name_ar'] : ($details['name_en'] ?? $details['name_ar']) }}
+                                    {{ app()->getLocale() == 'ar' ? $item->product->name_ar : ($item->product->name_en ?? $item->product->name_ar) }}
                                 </td>
-                                <td class="p-5 font-bold text-gray-600 dark:text-gray-300">{{ number_format($details['price'], 2) }} {{ __('ج.م') }}</td>
-                                <td class="p-5 text-center font-black">{{ $details['quantity'] }}</td>
-                                <td class="p-5 text-red-600 font-black">{{ number_format($details['price'] * $details['quantity'], 2) }} {{ __('ج.م') }}</td>
+                                <td class="p-5 font-bold text-gray-600 dark:text-gray-300">{{ number_format($item->price, 2) }} {{ __('ج.م') }}</td>
+                                <td class="p-5 text-center font-black">{{ $item->quantity }}</td>
+                                <td class="p-5 text-red-600 font-black">{{ number_format($item->price * $item->quantity, 2) }} {{ __('ج.م') }}</td>
                                 <td class="p-5 text-center">
-                                    <form action="{{ route('cart.remove', $id) }}" method="POST">
+                                    <form action="{{ route('cart.remove', $item->product_id) }}" method="POST">
                                         @csrf
                                         <button type="submit" class="text-gray-400 hover:text-red-600 transition-all p-3 rounded-xl hover:bg-red-50 dark:hover:bg-gray-700" title="{{ __('حذف من السلة') }}">
                                             <i class="fa-regular fa-trash-can text-lg"></i>

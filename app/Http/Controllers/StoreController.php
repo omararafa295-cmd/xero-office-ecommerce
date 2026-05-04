@@ -22,8 +22,13 @@ class StoreController extends Controller
                            ->take(12)
                            ->get();
         
+        // توحيد وقت انتهاء العرض لجميع زوار الموقع باستخدام الـ Cache (عرض يتجدد كل 48 ساعة)
+        $flashSaleEndTime = cache()->remember('flash_sale_end_time', 60*60*48, function () {
+            return now()->addHours(48)->timestamp * 1000;
+        });
+
         // توجيه البيانات لصفحة welcome
-        return view('welcome', compact('categories', 'products'));
+        return view('welcome', compact('categories', 'products', 'flashSaleEndTime'));
     }
     // عرض تفاصيل منتج واحد
     public function show($id)
@@ -69,7 +74,7 @@ class StoreController extends Controller
     }
 
     $products = $query->paginate(12);
-    return view('category_products00', compact('category', 'products'));
+    return view('category_products', compact('category', 'products'));
 }
     // دالة إرجاع اقتراحات البحث كـ JSON
     public function searchSuggestions(Request $request)

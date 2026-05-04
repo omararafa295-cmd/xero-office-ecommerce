@@ -68,15 +68,14 @@
             <h2 class="text-xl font-bold mb-6 text-gray-800 dark:text-gray-200">{{ __('ملخص الطلب') }} 🧾</h2>
             
             <div class="space-y-4 mb-6">
-                @php $total = 0; @endphp
-                @foreach(session('cart') as $id => $details)
-                    @php $total += $details['price'] * $details['quantity']; @endphp
+                @foreach($cartItems as $item)
+                    {{-- $total is already calculated in the controller and passed to the view --}}
                     <div class="flex justify-between items-center text-sm border-b dark:border-gray-700 pb-4">
                         <div class="flex items-center gap-3">
-                            <span class="font-bold text-gray-900 dark:text-white">{{ app()->getLocale() == 'ar' ? $details['name_ar'] : ($details['name_en'] ?? $details['name_ar']) }}</span>
-                            <span class="text-gray-500 dark:text-gray-400">x{{ $details['quantity'] }}</span>
+                            <span class="font-bold text-gray-900 dark:text-white">{{ app()->getLocale() == 'ar' ? $item->product->name_ar : ($item->product->name_en ?? $item->product->name_ar) }}</span>
+                            <span class="text-gray-500 dark:text-gray-400">x{{ $item->quantity }}</span>
                         </div>
-                        <span class="font-bold text-red-600 dark:text-red-400">{{ number_format($details['price'] * $details['quantity'], 2) }} {{ __('ج.م') }}</span>
+                        <span class="font-bold text-red-600 dark:text-red-400">{{ number_format($item->price * $item->quantity, 2) }} {{ __('ج.م') }}</span>
                     </div>
                 @endforeach
                 
@@ -88,7 +87,7 @@
 
             <div class="flex justify-between items-center pt-4 border-t dark:border-gray-700">
                 <span class="text-lg font-bold text-gray-800 dark:text-gray-200">{{ __('الإجمالي الكلي:') }}</span>
-                <span id="totalAmountDisplay" data-subtotal="{{ $total }}" class="text-3xl font-black text-red-600">{{ number_format($total, 2) }} {{ __('ج.م') }}</span>
+                <span id="totalAmountDisplay" data-subtotal="{{ $total }}" class="text-3xl font-black text-red-600">{{ number_format($total, 2) }} {{ __('ج.م') }}</span> {{-- Use $total passed from controller --}}
             </div>
             
             <div class="mt-6 bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 p-4 rounded-xl text-sm font-bold flex items-center gap-2 border border-blue-100 dark:border-blue-800">
@@ -105,7 +104,7 @@
         const shippingCostDisplay = document.getElementById('shippingCostDisplay');
         const totalAmountDisplay = document.getElementById('totalAmountDisplay');
         
-        const subtotal = parseFloat(totalAmountDisplay.getAttribute('data-subtotal'));
+        let subtotal = parseFloat(totalAmountDisplay.getAttribute('data-subtotal')); // Use 'let' instead of 'const'
 
         governorateSelect.addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
@@ -115,6 +114,9 @@
                 shippingCostDisplay.innerHTML = `<span class="text-red-600 font-black">${shippingCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span> {{ __('ج.م') }}`;
                 const newTotal = subtotal + shippingCost;
                 totalAmountDisplay.innerHTML = `${newTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {{ __('ج.م') }}`;
+            } else {
+                shippingCostDisplay.innerHTML = `{{ __('يحدد حسب المحافظة') }}`;
+                totalAmountDisplay.innerHTML = `${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {{ __('ج.م') }}`;
             }
         });
     });

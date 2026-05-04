@@ -134,8 +134,22 @@
                 </a>
                  <a href="{{ route('cart.index') }}" class="relative text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors text-lg md:text-xl ml-1">
                     <i class="fa-solid fa-cart-shopping"></i>
-                    @if(session('cart') && count(session('cart')) > 0)
-                        <span class="absolute -top-2 {{ app()->getLocale() == 'ar' ? '-left-2' : '-right-2' }} bg-gray-900 dark:bg-gray-600 text-white text-[10px] font-bold h-4 w-4 flex items-center justify-center rounded-full shadow-sm">{{ count(session('cart')) }}</span>
+                    @php
+                        $cartCount = 0;
+                        if (auth()->check()) {
+                            $userCart = auth()->user()->cart;
+                            if ($userCart) {
+                                $cartCount = $userCart->items->sum('quantity');
+                            }
+                        } else {
+                            $sessionCart = session('cart');
+                            if ($sessionCart) {
+                                $cartCount = array_sum(array_column($sessionCart, 'quantity'));
+                            }
+                        }
+                    @endphp
+                    @if($cartCount > 0)
+                        <span class="absolute -top-2 {{ app()->getLocale() == 'ar' ? '-left-2' : '-right-2' }} bg-gray-900 dark:bg-gray-600 text-white text-[10px] font-bold h-4 w-4 flex items-center justify-center rounded-full shadow-sm">{{ $cartCount }}</span>
                     @endif
                 </a>
                 <div class="hidden md:block relative group border-l border-gray-200 dark:border-gray-700 pl-3 ml-1">

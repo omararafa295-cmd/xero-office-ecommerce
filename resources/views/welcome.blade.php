@@ -325,16 +325,8 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        let endTime = localStorage.getItem('flashSaleEndTime');
         // جلب وقت انتهاء العرض من السيرفر مباشرة (موحد لجميع الزوار)
         let endTime = {{ $flashSaleEndTime }};
-
-        if (!endTime) {
-            endTime = new Date().getTime() + (48 * 60 * 60 * 1000);
-            localStorage.setItem('flashSaleEndTime', endTime);
-        } else {
-            endTime = parseInt(endTime);
-        }
 
         let timer = setInterval(function() {
             let now = new Date().getTime();
