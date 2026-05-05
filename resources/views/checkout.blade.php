@@ -32,15 +32,9 @@
                     <div class="relative">
                         <select name="governorate" id="governorateSelect" required class="w-full p-4 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-red-500 dark:text-white outline-none transition appearance-none cursor-pointer">
                             <option value="" disabled selected>{{ __('اختر المحافظة لحساب تكلفة الشحن...') }}</option>
-                            <option value="الشرقية" data-cost="40">{{ __('الشرقية') }}</option>
-                            <option value="القاهرة" data-cost="50">{{ __('القاهرة') }}</option>
-                            <option value="الجيزة" data-cost="50">{{ __('الجيزة') }}</option>
-                            <option value="الإسكندرية" data-cost="60">{{ __('الإسكندرية') }}</option>
-                            <option value="الدقهلية" data-cost="60">{{ __('الدقهلية') }}</option>
-                            <option value="القليوبية" data-cost="60">{{ __('القليوبية') }}</option>
-                            <option value="المنوفية" data-cost="60">{{ __('المنوفية') }}</option>
-                            <option value="الغربية" data-cost="60">{{ __('الغربية') }}</option>
-                            <option value="باقي المحافظات" data-cost="80">{{ __('محافظات أخرى') }}</option>
+                            @foreach($governorates as $gov)
+                                <option value="{{ $gov->id }}" data-cost="{{ $gov->shipping_cost }}">{{ app()->getLocale() == 'ar' ? $gov->name_ar : $gov->name_en }}</option>
+                            @endforeach
                         </select>
                         <i class="fa-solid fa-chevron-down absolute top-1/2 transform -translate-y-1/2 {{ app()->getLocale() == 'ar' ? 'left-4' : 'right-4' }} text-gray-400 pointer-events-none"></i>
                     </div>

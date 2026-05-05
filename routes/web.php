@@ -9,6 +9,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\GovernorateController;
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -78,6 +79,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::resource('products', ProductController::class);
     // إدارة الأقسام
     Route::resource('categories', CategoryController::class);
+    // إدارة المحافظات وأسعار الشحن
+    Route::resource('governorates', GovernorateController::class);
     // مسار تصدير الطلبات لإكسيل
     Route::get('/admin/orders/export', [App\Http\Controllers\AdminController::class, 'exportOrders'])->name('admin.orders.export');
     });

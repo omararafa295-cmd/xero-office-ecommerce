@@ -57,6 +57,17 @@
                 <i class="fa-solid fa-file-invoice-dollar w-5 text-center text-lg"></i> الطلبات
             </a>
 
+            <!-- رابط إدارة المحافظات وأسعار الشحن -->
+<a href="{{ route('governorates.index') }}" 
+   class="flex items-center gap-3 px-4 py-3 text-sm font-bold transition-all rounded-xl 
+          {{ request()->routeIs('governorates.*') ? 'bg-red-600 text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+    <div class="w-8 h-8 flex items-center justify-center rounded-lg {{ request()->routeIs('governorates.*') ? 'bg-white/20' : 'bg-gray-100 dark:bg-gray-900' }}">
+        <i class="fa-solid fa-truck-fast"></i>
+    </div>
+    <span>{{ __('إدارة الشحن') }}</span>
+</a>
+
+
             <a href="{{ route('admin.customers') }}" class="flex items-center gap-3 px-4 py-3.5 {{ request()->routeIs('admin.customers') ? 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-500' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' }} rounded-xl font-bold transition-all">
                 <i class="fa-solid fa-users w-5 text-center text-lg"></i> العملاء
             </a>

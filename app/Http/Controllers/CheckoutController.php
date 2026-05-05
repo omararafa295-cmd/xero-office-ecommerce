@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Cart;
 use App\Models\CartItem;
+use App\Models\Governorate;
 
 class CheckoutController extends Controller
 {
@@ -51,8 +52,10 @@ class CheckoutController extends Controller
             return redirect()->route('home')->with('error', 'سلتك فارغة!');
         }
 
+        $governorates = Governorate::all();
+
         // Pass cart items and total to the view
-        return view('checkout', compact('cartItems', 'total'));
+        return view('checkout', compact('cartItems', 'total', 'governorates'));
     }
 
     // حفظ الطلب في الداتا بيز
@@ -61,7 +64,7 @@ class CheckoutController extends Controller
         // 1. التأكد من البيانات
         $request->validate([
             'phone' => 'required|string|max:20',
-            'governorate' => 'required|string',
+            'governorate' => 'required|exists:governorates,id',
             'address' => 'required|string|max:255',
         ]);
 
@@ -73,27 +76,15 @@ class CheckoutController extends Controller
             return redirect()->route('home')->with('error', 'سلتك فارغة!');
         }
 
-        // أسعار الشحن
-        $shippingCosts = [
-            'الشرقية' => 40,
-            'القاهرة' => 70,
-            'الجيزة' => 80,
-            'الإسكندرية' => 100,
-            'الدقهلية' => 60,
-            'القليوبية' => 60,
-            'المنوفية' => 60,
-            'الغربية' => 60,
-            'باقي المحافظات' => 80,
-        ];
-
-        $gov = $request->governorate;
-        $shippingCost = $shippingCosts[$gov] ?? 80;
+        // جلب المحافظة المختارة من الداتا بيز
+        $governorate = Governorate::findOrFail($request->governorate);
+        $shippingCost = $governorate->shipping_cost;
 
         // 2. حساب الإجمالي الكلي
         $subtotal = $cart->total; // Use the total from the Cart model
         
         $totalAmount = $subtotal + $shippingCost;
-        $fullAddress = $gov . ' - ' . $request->address;
+        $fullAddress = $governorate->name_ar . ' - ' . $request->address;
 
         // 3. إنشاء الطلب الأساسي
         $order = Order::create([
@@ -109,6 +100,13 @@ class CheckoutController extends Controller
 
        // 4. حفظ المنتجات اللي جوه الطلب وخصمها من المخزن
         foreach ($cart->items as $cartItem) { // Iterate through cart items from the database
+            // التأكد من توفر المخزون قبل أي شيء
+            if ($cartItem->product->stock < $cartItem->quantity) {
+                return redirect()->route('cart.index')->with('error', 
+                    __('عذراً، المنتج') . ' ' . $cartItem->product->name_ar . ' ' . __('غير متوفر بالكمية المطلوبة حالياً.')
+                );
+            }
+
             // حفظ تفاصيل المنتج في الطلب
             OrderItem::create([
                 'order_id' => $order->id,

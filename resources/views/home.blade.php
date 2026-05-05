@@ -51,7 +51,7 @@
                 </a>
                 
                 <div class="hidden md:flex gap-4 lg:gap-6 font-bold text-gray-600 dark:text-gray-300 text-sm lg:text-base">
-                    <a href="{{ route('home') }}" class="hover:text-red-600 transition whitespace-nowrap">{{ __('الرئيسية') }}</a>
+                    <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'text-red-600' : '' }} hover:text-red-600 transition whitespace-nowrap">{{ __('الرئيسية') }}</a>
                     
                     <!-- Categories Dropdown (Desktop) -->
                     <div class="relative group">
