@@ -17,18 +17,23 @@
         .total-price { color: #dc2626; font-size: 18px; }
         .footer { text-align: center; padding: 20px; background-color: #f9fafb; color: #6b7280; font-size: 12px; border-top: 1px solid #eeeeee; }
         .btn { display: inline-block; background-color: #dc2626; color: #ffffff; text-decoration: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; margin-top: 20px; }
+        .discount { color: #15803d; font-weight: bold; }
     </style>
 </head>
 <body>
+    @php
+        $subtotal = $order->items->sum(fn ($item) => $item->price * $item->quantity);
+    @endphp
+
     <div class="container">
         <div class="header">
             <h1>XERO <span>OFFICE</span></h1>
         </div>
-        
+
         <div class="content">
             <h2>مرحباً {{ $order->customer_name }}،</h2>
-            <p>شكراً لتسوقك من Xero Office. يسعدنا إبلاغك أنه تم استلام طلبك بنجاح وجاري العمل على تجهيزه!</p>
-            
+            <p>شكراً لتسوقك من Xero Office. يسعدنا إبلاغك أنه تم استلام طلبك بنجاح وجارٍ العمل على تجهيزه.</p>
+
             <div class="order-id">
                 رقم الطلب: #{{ $order->id }}
             </div>
@@ -44,14 +49,34 @@
                 </thead>
                 <tbody>
                     @foreach($order->items as $item)
-                    <tr>
-                        <td>{{ $item->product_name_ar ?? $item->product_name }}</td>
-                        <td>{{ $item->quantity }}</td>
-                        <td>{{ number_format($item->price * $item->quantity, 2) }} ج.م</td>
-                    </tr>
+                        <tr>
+                            <td>{{ $item->product_name }}</td>
+                            <td>{{ $item->quantity }}</td>
+                            <td>{{ number_format($item->price * $item->quantity, 2) }} ج.م</td>
+                        </tr>
                     @endforeach
+
                     <tr class="total-row">
-                        <td colspan="2">الإجمالي المطلوب الدفع (عند الاستلام):</td>
+                        <td colspan="2">المجموع الفرعي:</td>
+                        <td>{{ number_format($subtotal, 2) }} ج.م</td>
+                    </tr>
+
+                    @if($order->coupon_code)
+                        <tr>
+                            <td colspan="2">الكوبون المستخدم:</td>
+                            <td>{{ $order->coupon_code }}</td>
+                        </tr>
+                    @endif
+
+                    @if(($order->discount_amount ?? 0) > 0)
+                        <tr>
+                            <td colspan="2">الخصم:</td>
+                            <td class="discount">-{{ number_format($order->discount_amount, 2) }} ج.م</td>
+                        </tr>
+                    @endif
+
+                    <tr class="total-row">
+                        <td colspan="2">الإجمالي المطلوب الدفع عند الاستلام:</td>
                         <td class="total-price">{{ number_format($order->total_amount, 2) }} ج.م</td>
                     </tr>
                 </tbody>

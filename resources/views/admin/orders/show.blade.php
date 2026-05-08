@@ -2,21 +2,31 @@
 @section('title', 'تفاصيل الطلب #' . $order->id)
 
 @section('content')
+@php
+    $subtotal = $order->items->sum(fn ($item) => $item->price * $item->quantity);
+    $discountAmount = (float) ($order->discount_amount ?? 0);
+    $shippingAmount = max(0, (float) $order->total_amount - max(0, $subtotal - $discountAmount));
+@endphp
+
 <div class="max-w-6xl mx-auto px-4 py-8">
-    
     <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
         <div>
             <a href="{{ route('admin.dashboard') }}" class="text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition flex items-center mb-2">
                 &larr; عودة للوحة التحكم
             </a>
             <h1 class="text-3xl font-black text-gray-900 dark:text-white transition-colors">
-                تفاصيل الطلب <span class="text-red-600">#{{ $order->id }}</span> 
+                تفاصيل الطلب <span class="text-red-600">#{{ $order->id }}</span>
             </h1>
+            @if($order->coupon_code)
+                <div class="mt-3 inline-flex items-center rounded-xl bg-green-50 px-3 py-2 text-sm font-black text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800">
+                    تم استخدام كوبون: {{ $order->coupon_code }}
+                </div>
+            @endif
         </div>
-        
+
         <a href="{{ route('admin.orders.print', $order->id) }}" target="_blank" class="bg-gray-900 hover:bg-black text-white px-6 py-2 rounded-xl font-bold flex items-center gap-2">
-    <i class="fa-solid fa-print"></i>  الفاتورة 
-</a>
+            <i class="fa-solid fa-print"></i> الفاتورة
+        </a>
     </div>
 
     <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 mb-8 flex flex-col md:flex-row items-center justify-between gap-6 transition-colors">
@@ -26,27 +36,26 @@
                 @csrf
                 @method('PUT')
                 <select name="status" class="p-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-red-500 text-gray-900 dark:text-white outline-none font-bold transition-colors cursor-pointer appearance-none text-center">
-                    <option value="pending" {{ $order->status == 'pending' ? 'selected' : '' }}>⏳ قيد الانتظار</option>
-                    <option value="processing" {{ $order->status == 'processing' ? 'selected' : '' }}>⚙️ جاري التجهيز</option>
-                    <option value="shipped" {{ $order->status == 'shipped' ? 'selected' : '' }}>🚚 تم الشحن</option>
-                    <option value="delivered" {{ $order->status == 'delivered' ? 'selected' : '' }}>✅ تم التوصيل</option>
-                    <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>❌ ملغي</option>
+                    <option value="pending" {{ $order->status == 'pending' ? 'selected' : '' }}>قيد الانتظار</option>
+                    <option value="processing" {{ $order->status == 'processing' ? 'selected' : '' }}>جاري التجهيز</option>
+                    <option value="shipped" {{ $order->status == 'shipped' ? 'selected' : '' }}>تم الشحن</option>
+                    <option value="delivered" {{ $order->status == 'delivered' ? 'selected' : '' }}>تم التوصيل</option>
+                    <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>ملغي</option>
                 </select>
                 <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold transition shadow-sm">
                     تحديث
                 </button>
             </form>
         </div>
-        
+
         <div class="text-sm text-gray-500 dark:text-gray-400 font-bold bg-gray-50 dark:bg-gray-900 px-4 py-2 rounded-lg border dark:border-gray-700">
-            🕒 تاريخ الطلب: {{ $order->created_at->format('Y-m-d h:i A') }}
+            تاريخ الطلب: {{ $order->created_at->format('Y-m-d h:i A') }}
         </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-        
         <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors">
-            <h2 class="text-xl font-black text-gray-900 dark:text-white mb-6 border-b border-gray-100 dark:border-gray-700 pb-4">بيانات العميل 👤</h2>
+            <h2 class="text-xl font-black text-gray-900 dark:text-white mb-6 border-b border-gray-100 dark:border-gray-700 pb-4">بيانات العميل</h2>
             <div class="space-y-4">
                 <div class="flex justify-between items-center border-b border-dashed dark:border-gray-700 pb-3">
                     <span class="text-gray-500 dark:text-gray-400 font-bold">الاسم:</span>
@@ -70,32 +79,50 @@
         </div>
 
         <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors flex flex-col">
-            <h2 class="text-xl font-black text-gray-900 dark:text-white mb-6 border-b border-gray-100 dark:border-gray-700 pb-4">ملخص الحساب 💳</h2>
+            <h2 class="text-xl font-black text-gray-900 dark:text-white mb-6 border-b border-gray-100 dark:border-gray-700 pb-4">ملخص الحساب</h2>
             <div class="space-y-4 flex-grow">
+                <div class="flex justify-between items-center border-b border-dashed dark:border-gray-700 pb-3">
+                    <span class="text-gray-500 dark:text-gray-400 font-bold">المجموع الفرعي:</span>
+                    <span class="font-bold text-gray-900 dark:text-white">{{ number_format($subtotal, 2) }} ج.م</span>
+                </div>
+
+                @if($order->coupon_code)
+                    <div class="flex justify-between items-center border-b border-dashed dark:border-gray-700 pb-3">
+                        <span class="text-gray-500 dark:text-gray-400 font-bold">الكوبون المستخدم:</span>
+                        <span class="font-black text-green-600 dark:text-green-400">{{ $order->coupon_code }}</span>
+                    </div>
+                @endif
+
+                @if($discountAmount > 0)
+                    <div class="flex justify-between items-center border-b border-dashed dark:border-gray-700 pb-3">
+                        <span class="text-gray-500 dark:text-gray-400 font-bold">قيمة الخصم:</span>
+                        <span class="font-black text-green-600 dark:text-green-400">-{{ number_format($discountAmount, 2) }} ج.م</span>
+                    </div>
+                @endif
+
                 <div class="flex justify-between items-center border-b border-dashed dark:border-gray-700 pb-3">
                     <span class="text-gray-500 dark:text-gray-400 font-bold">طريقة الدفع:</span>
                     <span class="font-bold bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 px-3 py-1 rounded-full text-sm border border-green-200 dark:border-green-800">
-                        {{ $order->payment_method == 'cash' ? '💵 نقداً عند الاستلام' : $order->payment_method }}
+                        {{ $order->payment_method == 'cash' ? 'نقداً عند الاستلام' : $order->payment_method }}
                     </span>
                 </div>
-                
+
                 <div class="flex justify-between items-center border-b border-dashed dark:border-gray-700 pb-3">
                     <span class="text-gray-500 dark:text-gray-400 font-bold">مصاريف الشحن:</span>
-                    <span class="font-bold text-gray-900 dark:text-white">مجاناً</span>
+                    <span class="font-bold text-gray-900 dark:text-white">{{ number_format($shippingAmount, 2) }} ج.م</span>
                 </div>
             </div>
-            
+
             <div class="mt-auto bg-gray-50 dark:bg-gray-900 p-6 rounded-xl border dark:border-gray-700 flex justify-between items-center">
                 <span class="text-xl font-black text-gray-900 dark:text-white">الإجمالي الكلي:</span>
-                <span class="text-3xl font-black text-red-600">{{ $order->total_amount }} <span class="text-sm text-gray-500">ج.م</span></span>
+                <span class="text-3xl font-black text-red-600">{{ number_format($order->total_amount, 2) }} <span class="text-sm text-gray-500">ج.م</span></span>
             </div>
         </div>
-
     </div>
 
     <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-colors mb-8">
         <div class="p-6 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
-            <h2 class="text-xl font-black text-gray-900 dark:text-white">المنتجات المطلوبة 🛒</h2>
+            <h2 class="text-xl font-black text-gray-900 dark:text-white">المنتجات المطلوبة</h2>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-right">
@@ -109,16 +136,16 @@
                 </thead>
                 <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
                     @forelse($order->items ?? [] as $item)
-                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                        <td class="p-4 font-bold text-gray-900 dark:text-white">{{ $item->product_name }}</td>
-                        <td class="p-4 font-black text-red-600 text-center text-lg">x{{ $item->quantity }}</td>
-                        <td class="p-4 font-bold text-gray-700 dark:text-gray-300 text-center">{{ $item->price }} ج.م</td>
-                        <td class="p-4 font-black text-gray-900 dark:text-white text-left">{{ $item->price * $item->quantity }} ج.م</td>
-                    </tr>
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                            <td class="p-4 font-bold text-gray-900 dark:text-white">{{ $item->product_name }}</td>
+                            <td class="p-4 font-black text-red-600 text-center text-lg">x{{ $item->quantity }}</td>
+                            <td class="p-4 font-bold text-gray-700 dark:text-gray-300 text-center">{{ number_format($item->price, 2) }} ج.م</td>
+                            <td class="p-4 font-black text-gray-900 dark:text-white text-left">{{ number_format($item->price * $item->quantity, 2) }} ج.م</td>
+                        </tr>
                     @empty
-                    <tr>
-                        <td colspan="4" class="p-6 text-center text-gray-500 font-bold">لم يتم جلب المنتجات (تأكد من العلاقة في الموديل)</td>
-                    </tr>
+                        <tr>
+                            <td colspan="4" class="p-6 text-center text-gray-500 font-bold">لم يتم العثور على منتجات لهذا الطلب.</td>
+                        </tr>
                     @endforelse
                 </tbody>
             </table>

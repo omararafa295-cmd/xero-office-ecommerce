@@ -23,7 +23,14 @@
                 <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
                     @forelse($orders as $order)
                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                        <td class="p-5 font-black text-gray-900 dark:text-white">#{{ $order->id }}</td>
+                        <td class="p-5 font-black text-gray-900 dark:text-white">
+                            <span class="block">#{{ $order->id }}</span>
+                            @if($order->coupon_code)
+                                <span class="mt-2 inline-flex items-center rounded-lg bg-green-50 px-2 py-1 text-[11px] font-black text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800">
+                                    كوبون: {{ $order->coupon_code }}
+                                </span>
+                            @endif
+                        </td>
                         <td class="p-5 text-gray-600 dark:text-gray-400 font-bold">{{ $order->created_at->format('Y-m-d H:i') }}</td>
                         <td class="p-5 font-bold text-gray-700 dark:text-gray-300">{{ $order->customer_name }}</td>
                         <td class="p-5 font-black text-red-600 text-center">{{ $order->total_amount }} ج.م</td>

@@ -9,7 +9,7 @@ class GovernorateController extends Controller
 {
     public function index()
     {
-        $governorates = Governorate::latest()->get();
+        $governorates = Governorate::latest()->paginate(10); // تم التعديل هنا لاستخدام paginate
         return view('admin.governorates.index', compact('governorates'));
     }
 

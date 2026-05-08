@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        body { font-family: 'Tahoma', Arial, sans-serif; background-color: #f9fafb; padding: 20px; }
-        .email-container { max-w-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        body { font-family: Tahoma, Arial, sans-serif; background-color: #f9fafb; padding: 20px; }
+        .email-container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .header { background-color: #dc2626; padding: 30px; text-align: center; }
         .header h1 { color: #ffffff; margin: 0; font-size: 24px; }
         .content { padding: 30px; color: #374151; line-height: 1.6; }
@@ -17,22 +17,24 @@
 <body>
     <div class="email-container">
         <div class="header">
-            <img src="public/images/logo.png" alt="Xero Office" style="max-height: 50px; margin-bottom: 15px;">
-            <h1>طلبك في الطريق إليك! 🚚</h1>
+            <h1>طلبك في الطريق إليك</h1>
         </div>
 
         <div class="content">
             <p>أهلاً بك يا <strong>{{ $order->customer_name ?? optional($order->user)->name }}</strong>،</p>
-            <p>خبر سعيد! لقد تم تسليم طلبك إلى شركة الشحن، وهو الآن في طريقه إليك. يرجى إبقاء هاتفك المحمول متاحاً ليتواصل معك المندوب قريباً.</p>
-            
+            <p>خبر سعيد! تم تسليم طلبك إلى شركة الشحن وهو الآن في الطريق إليك. يرجى إبقاء هاتفك متاحاً ليتواصل معك المندوب قريباً.</p>
+
             <div class="order-box">
                 <p>رقم الطلب</p>
                 <h2>#{{ $order->id }}</h2>
-                <p style="margin-top: 10px;">الإجمالي: <strong>{{ $order->total_amount }} ج.م</strong></p>
+                <p style="margin-top: 10px;">الإجمالي: <strong>{{ number_format($order->total_amount, 2) }} ج.م</strong></p>
+                @if($order->coupon_code)
+                    <p style="margin-top: 10px;">الكوبون المستخدم: <strong>{{ $order->coupon_code }}</strong></p>
+                @endif
             </div>
 
-            <p>شكراً لتسوقك من <strong>Xero Office</strong>، نتمنى لك تجربة استخدام رائعة لمنتجاتنا!</p>
-            
+            <p>شكراً لتسوقك من <strong>Xero Office</strong>، ونتمنى لك تجربة ممتازة مع منتجاتنا.</p>
+
             <div style="text-align: center;">
                 <a href="{{ url('/') }}" class="btn">زيارة المتجر</a>
             </div>
@@ -40,7 +42,7 @@
 
         <div class="footer">
             <p>هذه رسالة تلقائية، يرجى عدم الرد عليها.</p>
-            <p>© 2026 Xero Office. جميع الحقوق محفوظة.</p>
+            <p>&copy; 2026 Xero Office. جميع الحقوق محفوظة.</p>
         </div>
     </div>
 </body>

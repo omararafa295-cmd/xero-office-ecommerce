@@ -28,6 +28,12 @@ class Product extends Model
     {
         return $this->belongsTo(Category::class);
     }
+
+    // علاقة المنتج بعناصر الطلبات التي تواجد بها
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
     public function reviews() { return $this->hasMany(Review::class); }
 public function averageRating() { return $this->reviews()->avg('rating') ?: 0; }
 }

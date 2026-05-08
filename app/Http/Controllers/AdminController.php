@@ -9,11 +9,11 @@ use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\OrderShipped;
 use App\Exports\OrdersExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 use App\Mail\OrderShippedMail;
+use App\Models\Coupon;
 
 class AdminController extends Controller
 {
@@ -37,7 +37,13 @@ public function index(Request $request)
     $total_sales = Order::where('status', 'delivered')->when($startDate, fn($q) => $q->where('created_at', '>=', $startDate))->sum('total_amount');
 
     $recent_orders = Order::latest()->take(5)->get();
-    $best_sellers = Product::take(4)->get();
+    $best_sellers = Product::whereHas('orderItems')
+        ->withCount(['orderItems as total_sold' => function($query) {
+            $query->select(DB::raw('sum(quantity)'));
+        }])
+        ->orderByDesc('total_sold')
+        ->take(4)
+        ->get();
 
     // الشارت الديناميكي
     $chartDates = [];
@@ -87,26 +93,30 @@ public function index(Request $request)
     public function customers()
     {
         // هنجيب كل المستخدمين اللي مش أدمن (يعني العملاء العاديين)
-        $customers = User::where('is_admin', false)->latest()->get();
+        $customers = User::where('is_admin', false)->latest()->paginate(20);
         
         return view('admin.customers', compact('customers'));
     }
 
     public function showOrder($id)
     {
-        $order = Order::with('items')->findOrFail($id);
+        $order = Order::with(['items', 'user'])->findOrFail($id);
         return view('admin.orders.show', compact('order'));
     }
 
     public function printInvoice($id)
     {
-        $order = Order::with('items')->findOrFail($id);
+        $order = Order::with(['items', 'user'])->findOrFail($id);
         return view('admin.orders.invoice', compact('order'));
     }
     public function updateStatus(Request $request, $id)
 {
     $order = Order::findOrFail($id);
     
+    $request->validate([
+        'status' => 'required|in:pending,processing,shipped,delivered,cancelled',
+    ]);
+
     // حفظ الحالة القديمة عشان نعرف هي اتغيرت ولا لأ
     $oldStatus = $order->status;
     $newStatus = $request->status; // ('shipped' مثلاً)
@@ -122,7 +132,7 @@ public function index(Request $request)
         $customerEmail = $order->customer_email ?? optional($order->user)->email;
         
         if ($customerEmail) {
-            // إرسال الإيميل
+            $order->loadMissing(['items', 'user']);
             Mail::to($customerEmail)->send(new OrderShippedMail($order));
         }
     }
@@ -150,4 +160,54 @@ public function lowStock()
     
     return view('admin.low_stock', compact('low_stock_products'));
 }
+
+    /**
+     * Display a listing of the coupons.
+     */
+    public function coupons()
+    {
+        // Fetch all coupons, paginated for better performance
+        $coupons = Coupon::paginate(10); // You can adjust the pagination limit as needed
+
+        return view('admin.coupons', compact('coupons'));
+    }
+    /**
+     * Store a newly created coupon in storage.
+     */
+    public function storeCoupon(Request $request)
+    {
+        $request->validate([
+            'code' => 'required|string|max:255|unique:coupons,code',
+            'type' => 'required|in:fixed,percent',
+            'value' => 'required|numeric|min:0',
+            'usage_limit' => 'nullable|integer|min:1',
+            'expires_at' => 'nullable|date|after_or_equal:today',
+        ]);
+
+        Coupon::create([
+            'code' => strtoupper($request->code), // Convert code to uppercase for consistency
+            'type' => $request->type,
+            'value' => $request->value,
+            'usage_limit' => $request->usage_limit,
+            'expires_at' => $request->expires_at,
+        ]);
+
+        return redirect()->back()->with('success', 'تم إضافة الكوبون بنجاح! ✅');
+    }
+
+    /**
+     * Remove the specified coupon from storage.
+     */
+    public function destroyCoupon(Coupon $coupon)
+    {
+        $coupon->delete();
+        return redirect()->back()->with('success', 'تم حذف الكوبون بنجاح! 🗑️');
+    }
+        
 }
+
+    
+
+
+
+

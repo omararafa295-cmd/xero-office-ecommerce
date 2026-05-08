@@ -93,6 +93,11 @@
                                 <td class="p-4 font-bold text-gray-700 dark:text-gray-300">
                                     {{ $order->customer_name }}
                                     <span class="block text-xs text-gray-400 dark:text-gray-500 mt-1" dir="ltr">{{ $order->customer_phone ?? optional($order->user)->phone }}</span>
+                                    @if($order->coupon_code)
+                                        <span class="inline-flex mt-2 items-center rounded-lg bg-green-50 px-2 py-1 text-[11px] font-black text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800">
+                                            كوبون مستخدم: {{ $order->coupon_code }}
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="p-4 font-black text-red-600 dark:text-red-400 text-center">{{ $order->total_amount }} ج</td>
                                 <td class="p-4 text-center">

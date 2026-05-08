@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\ReviewController;
 
+Route::middleware('customer')->group(function () {
     // 1. الصفحة الرئيسية
     Route::get('/', [StoreController::class, 'index'])->name('home');
     // صفحة تفاصيل المنتج
@@ -38,9 +39,10 @@ use App\Http\Controllers\ReviewController;
     Route::get('/track-order', [OrderController::class, 'trackForm'])->name('order.track.form');
     // استقبال الداتا والبحث عن الطلب
     Route::post('/track-order', [OrderController::class, 'trackResult'])->name('order.track.result');
+});
     // 3. مسارات تتطلب تسجيل الدخول (العميل العادي)
 Route::middleware(['auth'])->group(function () { // هذا الجروب للمستخدمين المسجلين دخول
-    Route::middleware(['verified'])->group(function () { // هذا الجروب للمستخدمين الذين أكدوا بريدهم الإلكتروني
+    Route::middleware(['customer', 'verified'])->group(function () { // هذا الجروب للعملاء الذين أكدوا بريدهم الإلكتروني
         Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
         Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
         Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
@@ -51,6 +53,10 @@ Route::middleware(['auth'])->group(function () { // هذا الجروب للمس
         Route::get('/my-orders', [OrderController::class, 'myOrders'])->name('my.orders');
         Route::post('/products/{id}/favorite', [ProductController::class, 'toggleFavorite'])->name('products.favorite');
         Route::post('/product/{product}/review', [ReviewController::class, 'store'])->name('reviews.store');
+        
+        // مسارات الكوبونات (للعميل)
+        Route::post('/coupon/apply', [\App\Http\Controllers\CouponController::class, 'apply'])->name('coupon.apply');
+        Route::get('/coupon/remove', [\App\Http\Controllers\CouponController::class, 'remove'])->name('coupon.remove');
     });
 });
     Route::get('lang/{locale}', function ($locale) {
@@ -83,6 +89,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::resource('governorates', GovernorateController::class);
     // مسار تصدير الطلبات لإكسيل
     Route::get('/admin/orders/export', [App\Http\Controllers\AdminController::class, 'exportOrders'])->name('admin.orders.export');
+    Route::get('/admin/coupons', [App\Http\Controllers\AdminController::class, 'coupons'])->name('admin.coupons');
+
+    // مسارات إدارة الكوبونات (لوحة التحكم)
+    Route::get('/coupons', [App\Http\Controllers\AdminController::class, 'coupons'])->name('admin.coupons');
+    Route::post('/coupons', [App\Http\Controllers\AdminController::class, 'storeCoupon'])->name('admin.coupons.store');
+    Route::delete('/coupons/{id}', [App\Http\Controllers\AdminController::class, 'destroyCoupon'])->name('admin.coupons.destroy');
     });
 
 // توجيه العميل لجوجل

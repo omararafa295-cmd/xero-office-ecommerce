@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Governorate;
+use App\Models\Coupon;
 
 class CheckoutController extends Controller
 {
@@ -54,8 +55,15 @@ class CheckoutController extends Controller
 
         $governorates = Governorate::all();
 
+        $discount = 0;
+        if (session()->has('coupon')) {
+            $coupon = session()->get('coupon');
+            // حساب الخصم بناءً على نوعه (ثابت أو نسبة مئوية من إجمالي السلة)
+            $discount = $coupon['type'] == 'fixed' ? $coupon['value'] : ($total * ($coupon['value'] / 100));
+        }
+
         // Pass cart items and total to the view
-        return view('checkout', compact('cartItems', 'total', 'governorates'));
+        return view('checkout', compact('cartItems', 'total', 'governorates', 'discount'));
     }
 
     // حفظ الطلب في الداتا بيز
@@ -83,7 +91,15 @@ class CheckoutController extends Controller
         // 2. حساب الإجمالي الكلي
         $subtotal = $cart->total; // Use the total from the Cart model
         
-        $totalAmount = $subtotal + $shippingCost;
+        $discount = 0;
+        $couponCode = null;
+        if (session()->has('coupon')) {
+            $coupon = session()->get('coupon');
+            $discount = $coupon['type'] == 'fixed' ? $coupon['value'] : ($subtotal * ($coupon['value'] / 100));
+            $couponCode = $coupon['code'];
+        }
+
+        $totalAmount = max(0, $subtotal - $discount) + $shippingCost; // نخصم من المنتجات فقط وليس من سعر الشحن
         $fullAddress = $governorate->name_ar . ' - ' . $request->address;
 
         // 3. إنشاء الطلب الأساسي
@@ -94,6 +110,8 @@ class CheckoutController extends Controller
             'customer_email' => $user->email, // Use authenticated user's email
             'shipping_address' => $fullAddress,
             'total_amount' => $totalAmount,
+            'discount_amount' => $discount,
+            'coupon_code' => $couponCode,
             'payment_method' => 'cash',
             'status' => 'pending'
         ]);
@@ -127,6 +145,13 @@ class CheckoutController extends Controller
         $cart->items()->delete(); // Clear cart items from database
         $cart->delete(); // Delete the cart itself
 
+        // زيادة عدد مرات استخدام الكوبون وحذفه من الجلسة
+        if (session()->has('coupon')) {
+            Coupon::where('code', session()->get('coupon')['code'])->increment('used_count');
+            session()->forget('coupon');
+        }
+
+        $order->loadMissing('items');
         Mail::to($user->email)->send(new OrderConfirmation($order));
         return redirect()->route('checkout.success')->with('order_id', $order->id);
     }

@@ -13,19 +13,22 @@
             <div>
                 <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">اسم المحافظة (بالعربي)</label>
                 <input type="text" name="name_ar" value="{{ old('name_ar', $governorate->name_ar) }}" required 
-                    class="w-full p-4 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-red-500 dark:text-white outline-none transition-all">
+                    class="w-full p-4 bg-gray-50 dark:bg-gray-700 border @error('name_ar') border-red-500 @else border-gray-200 @enderror dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-red-500 dark:text-white outline-none transition-all">
+                @error('name_ar') <p class="text-red-500 text-xs mt-1 font-bold">{{ $message }}</p> @enderror
             </div>
             
             <div>
                 <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">اسم المحافظة (EN)</label>
                 <input type="text" name="name_en" value="{{ old('name_en', $governorate->name_en) }}" required 
-                    class="w-full p-4 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-red-500 dark:text-white outline-none transition-all">
+                    class="w-full p-4 bg-gray-50 dark:bg-gray-700 border @error('name_en') border-red-500 @else border-gray-200 @enderror dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-red-500 dark:text-white outline-none transition-all">
+                @error('name_en') <p class="text-red-500 text-xs mt-1 font-bold">{{ $message }}</p> @enderror
             </div>
 
             <div>
                 <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">سعر الشحن (ج.م)</label>
                 <input type="number" step="0.01" name="shipping_cost" value="{{ old('shipping_cost', $governorate->shipping_cost) }}" required 
-                    class="w-full p-4 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-red-500 dark:text-white outline-none transition-all">
+                    class="w-full p-4 bg-gray-50 dark:bg-gray-700 border @error('shipping_cost') border-red-500 @else border-gray-200 @enderror dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-red-500 dark:text-white outline-none transition-all">
+                @error('shipping_cost') <p class="text-red-500 text-xs mt-1 font-bold">{{ $message }}</p> @enderror
             </div>
 
             <div class="flex gap-4 pt-4">

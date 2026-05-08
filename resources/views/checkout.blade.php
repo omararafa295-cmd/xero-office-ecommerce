@@ -61,6 +61,33 @@
         <div class="bg-gray-50 dark:bg-gray-800 p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 h-fit transition-colors">
             <h2 class="text-xl font-bold mb-6 text-gray-800 dark:text-gray-200">{{ __('ملخص الطلب') }} 🧾</h2>
             
+            <!-- قسم الكوبون -->
+            <div class="mb-6 border-b dark:border-gray-700 pb-6">
+                @if(session()->has('coupon'))
+                    <div class="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 p-4 rounded-xl flex justify-between items-center mb-2">
+                        <div>
+                            <span class="text-green-800 dark:text-green-400 font-bold text-sm">{{ __('كوبون مطبق:') }} {{ session('coupon')['code'] }}</span>
+                        </div>
+                        <a href="{{ route('coupon.remove') }}" class="text-red-500 hover:text-red-700 text-sm font-bold">{{ __('إزالة') }}</a>
+                    </div>
+                @else
+                    <form action="{{ route('coupon.apply') }}" method="POST" class="flex gap-2 mb-2">
+                        @csrf
+                        <input type="text" name="coupon_code" placeholder="{{ __('أدخل كود الخصم') }}" required
+                            class="flex-1 p-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-red-500 dark:text-white outline-none transition text-sm">
+                        <button type="submit" class="bg-gray-900 dark:bg-gray-600 hover:bg-black text-white px-4 rounded-xl font-bold transition text-sm shadow-sm">
+                            {{ __('تطبيق') }}
+                        </button>
+                    </form>
+                @endif
+                @if(session('error'))
+                    <p class="text-red-500 text-xs mt-1 font-bold">{{ session('error') }}</p>
+                @endif
+                @if(session('success'))
+                    <p class="text-green-500 text-xs mt-1 font-bold">{{ session('success') }}</p>
+                @endif
+            </div>
+
             <div class="space-y-4 mb-6">
                 @foreach($cartItems as $item)
                     {{-- $total is already calculated in the controller and passed to the view --}}
@@ -77,11 +104,18 @@
                     <span class="font-bold text-gray-900 dark:text-white">{{ __('تكلفة الشحن') }}</span>
                     <span id="shippingCostDisplay" class="font-bold text-gray-500 dark:text-gray-400">{{ __('يحدد حسب المحافظة') }}</span>
                 </div>
+                
+                @if(isset($discount) && $discount > 0)
+                <div class="flex justify-between items-center text-sm pt-2 text-green-600">
+                    <span class="font-bold">{{ __('الخصم المطبق') }}</span>
+                    <span class="font-bold">-{{ number_format($discount, 2) }} {{ __('ج.م') }}</span>
+                </div>
+                @endif
             </div>
 
             <div class="flex justify-between items-center pt-4 border-t dark:border-gray-700">
                 <span class="text-lg font-bold text-gray-800 dark:text-gray-200">{{ __('الإجمالي الكلي:') }}</span>
-                <span id="totalAmountDisplay" data-subtotal="{{ $total }}" class="text-3xl font-black text-red-600">{{ number_format($total, 2) }} {{ __('ج.م') }}</span> {{-- Use $total passed from controller --}}
+                <span id="totalAmountDisplay" data-subtotal="{{ $total }}" data-discount="{{ $discount ?? 0 }}" class="text-3xl font-black text-red-600">{{ number_format(max(0, $total - ($discount ?? 0)), 2) }} {{ __('ج.م') }}</span>
             </div>
             
             <div class="mt-6 bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 p-4 rounded-xl text-sm font-bold flex items-center gap-2 border border-blue-100 dark:border-blue-800">
@@ -98,7 +132,8 @@
         const shippingCostDisplay = document.getElementById('shippingCostDisplay');
         const totalAmountDisplay = document.getElementById('totalAmountDisplay');
         
-        let subtotal = parseFloat(totalAmountDisplay.getAttribute('data-subtotal')); // Use 'let' instead of 'const'
+        let subtotal = parseFloat(totalAmountDisplay.getAttribute('data-subtotal'));
+        let discount = parseFloat(totalAmountDisplay.getAttribute('data-discount')) || 0;
 
         governorateSelect.addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
@@ -106,11 +141,12 @@
             
             if (shippingCost > 0) {
                 shippingCostDisplay.innerHTML = `<span class="text-red-600 font-black">${shippingCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span> {{ __('ج.م') }}`;
-                const newTotal = subtotal + shippingCost;
+                const newTotal = Math.max(0, subtotal - discount) + shippingCost;
                 totalAmountDisplay.innerHTML = `${newTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {{ __('ج.م') }}`;
             } else {
                 shippingCostDisplay.innerHTML = `{{ __('يحدد حسب المحافظة') }}`;
-                totalAmountDisplay.innerHTML = `${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {{ __('ج.م') }}`;
+                const newTotal = Math.max(0, subtotal - discount);
+                totalAmountDisplay.innerHTML = `${newTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {{ __('ج.م') }}`;
             }
         });
     });

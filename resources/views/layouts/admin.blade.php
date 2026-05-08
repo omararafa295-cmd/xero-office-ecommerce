@@ -57,14 +57,24 @@
                 <i class="fa-solid fa-file-invoice-dollar w-5 text-center text-lg"></i> الطلبات
             </a>
 
-            <!-- رابط إدارة المحافظات وأسعار الشحن -->
-<a href="{{ route('governorates.index') }}" 
-   class="flex items-center gap-3 px-4 py-3 text-sm font-bold transition-all rounded-xl 
-          {{ request()->routeIs('governorates.*') ? 'bg-red-600 text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
-    <div class="w-8 h-8 flex items-center justify-center rounded-lg {{ request()->routeIs('governorates.*') ? 'bg-white/20' : 'bg-gray-100 dark:bg-gray-900' }}">
-        <i class="fa-solid fa-truck-fast"></i>
+
+
+<!-- رابط إدارة الكوبونات -->
+<a href="{{ route('admin.coupons') }}" 
+   class="flex items-center gap-3 p-3 rounded-xl transition-all {{ request()->routeIs('admin.coupons') ? 'bg-red-600 text-white shadow-lg' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+    <div class="w-8 h-8 flex items-center justify-center rounded-lg {{ request()->routeIs('admin.coupons') ? 'bg-white/20' : 'bg-gray-100 dark:bg-gray-800' }}">
+        <i class="fa-solid fa-ticket text-sm"></i>
     </div>
-    <span>{{ __('إدارة الشحن') }}</span>
+    <span class="font-bold text-sm">إدارة الكوبونات</span>
+</a>
+
+<!-- رابط إدارة الشحن (المحافظات) للتأكد من صحة الرابط -->
+<a href="{{ route('governorates.index') }}" 
+   class="flex items-center gap-3 p-3 rounded-xl transition-all {{ request()->routeIs('governorates.*') ? 'bg-red-600 text-white shadow-lg' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+    <div class="w-8 h-8 flex items-center justify-center rounded-lg {{ request()->routeIs('governorates.*') ? 'bg-white/20' : 'bg-gray-100 dark:bg-gray-800' }}">
+        <i class="fa-solid fa-truck-fast text-sm"></i>
+    </div>
+    <span class="font-bold text-sm">إدارة الشحن</span>
 </a>
 
 

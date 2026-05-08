@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // تعريف اسم الحركي (Alias)
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            'customer' => \App\Http\Middleware\CustomerOnlyMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

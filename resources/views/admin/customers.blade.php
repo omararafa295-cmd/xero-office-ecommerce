@@ -39,6 +39,10 @@
                 </tbody>
             </table>
         </div>
+
+        <div class="p-6 border-t border-gray-100 dark:border-gray-700">
+            {{ $customers->links() }}
+        </div>
     </div>
 </div>
 @endsection
