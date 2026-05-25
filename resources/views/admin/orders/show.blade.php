@@ -103,9 +103,30 @@
                 <div class="flex justify-between items-center border-b border-dashed dark:border-gray-700 pb-3">
                     <span class="text-gray-500 dark:text-gray-400 font-bold">طريقة الدفع:</span>
                     <span class="font-bold bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 px-3 py-1 rounded-full text-sm border border-green-200 dark:border-green-800">
-                        {{ $order->payment_method == 'cash' ? 'نقداً عند الاستلام' : $order->payment_method }}
+                        {{ $order->payment_method_label }}
                     </span>
                 </div>
+
+                <div class="flex justify-between items-center border-b border-dashed dark:border-gray-700 pb-3">
+                    <span class="text-gray-500 dark:text-gray-400 font-bold">حالة الدفع:</span>
+                    <span class="font-bold bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 px-3 py-1 rounded-full text-sm border border-blue-200 dark:border-blue-800">
+                        {{ $order->payment_status_label }}
+                    </span>
+                </div>
+
+                @if($order->wallet_number)
+                    <div class="flex justify-between items-center border-b border-dashed dark:border-gray-700 pb-3">
+                        <span class="text-gray-500 dark:text-gray-400 font-bold">رقم المحفظة:</span>
+                        <span class="font-bold text-gray-900 dark:text-white" dir="ltr">{{ $order->wallet_number }}</span>
+                    </div>
+                @endif
+
+                @if($order->notes)
+                    <div class="flex flex-col gap-2 border-b border-dashed dark:border-gray-700 pb-3">
+                        <span class="text-gray-500 dark:text-gray-400 font-bold">ملاحظات الطلب:</span>
+                        <span class="font-bold text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-900 p-3 rounded-lg border dark:border-gray-700 leading-relaxed">{{ $order->notes }}</span>
+                    </div>
+                @endif
 
                 <div class="flex justify-between items-center border-b border-dashed dark:border-gray-700 pb-3">
                     <span class="text-gray-500 dark:text-gray-400 font-bold">مصاريف الشحن:</span>

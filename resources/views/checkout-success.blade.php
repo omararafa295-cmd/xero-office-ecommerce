@@ -4,11 +4,10 @@
 @section('content')
 <div class="max-w-2xl mx-auto px-4 py-20 text-center">
     <div class="bg-white dark:bg-gray-800 p-10 rounded-3xl shadow-lg border border-gray-100 dark:border-gray-700 transition-colors">
-        
         <div class="w-24 h-24 bg-green-100 dark:bg-green-900/30 text-green-500 rounded-full flex items-center justify-center text-5xl mx-auto mb-6 border-4 border-green-200 dark:border-green-800 animate-bounce">
             🎉
         </div>
-        
+
         <h1 class="text-4xl font-black text-gray-900 dark:text-white mb-4">{{ __('تم استلام طلبك بنجاح!') }}</h1>
         <p class="text-lg text-gray-600 dark:text-gray-300 font-bold mb-8">
             {{ __('شكراً لتسوقك من Xero Office. سيتم التواصل معك قريباً لتأكيد الشحن.') }}
@@ -19,6 +18,14 @@
             <span class="text-3xl font-black text-red-600">#{{ session('order_id') }}</span>
         </div>
 
+        @if(session('payment_method_label'))
+            <div class="mb-8">
+                <span class="inline-flex items-center gap-2 rounded-xl bg-blue-50 px-4 py-3 text-sm font-black text-blue-700 border border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800">
+                    {{ __('طريقة الدفع المختارة:') }} {{ session('payment_method_label') }}
+                </span>
+            </div>
+        @endif
+
         <div class="flex gap-4 justify-center">
             <a href="{{ route('my.orders') ?? '#' }}" class="bg-gray-900 dark:bg-gray-700 hover:bg-black dark:hover:bg-gray-600 text-white px-8 py-3 rounded-xl font-bold transition shadow-md">
                 {{ __('متابعة طلباتي') }}
@@ -27,7 +34,6 @@
                 {{ __('العودة للرئيسية') }}
             </a>
         </div>
-        
     </div>
 </div>
 @endsection

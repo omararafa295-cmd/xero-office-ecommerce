@@ -10,6 +10,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\GovernorateController;
+use App\Http\Controllers\PaymobPaymentController;
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -46,6 +47,7 @@ Route::middleware(['auth'])->group(function () { // هذا الجروب للمس
         Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
         Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
         Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
+        Route::get('/payments/{order}/pay', [PaymobPaymentController::class, 'retry'])->name('payments.paymob.retry');
         
         Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
         Route::put('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
@@ -59,6 +61,13 @@ Route::middleware(['auth'])->group(function () { // هذا الجروب للمس
         Route::get('/coupon/remove', [\App\Http\Controllers\CouponController::class, 'remove'])->name('coupon.remove');
     });
 });
+
+Route::post('/payments/paymob/webhook', [PaymobPaymentController::class, 'webhook'])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
+    ->name('payments.paymob.webhook');
+
+Route::get('/payments/paymob/return/{order}', [PaymobPaymentController::class, 'callback'])
+    ->name('payments.paymob.callback');
     Route::get('lang/{locale}', function ($locale) {
     // التأكد إن اللغة المبعوتة هي عربي أو إنجليزي فقط
         if (in_array($locale, ['ar', 'en'])) {
@@ -103,8 +112,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     })->name('google.login');
 
 // استقبال بيانات العميل من جوجل بعد ما يوافق
-    Route::get('/auth/google/callback', function () {
-    $googleUser = Socialite::driver('google')->user();
+Route::get('/auth/google/callback', function () {
+    $googleUser = Socialite::driver('google')->stateless()->user();
     
     // هل العميل ده متسجل قبل كده؟ لو لأ، اعمله حساب جديد
     $user = User::updateOrCreate(

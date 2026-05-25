@@ -13,6 +13,18 @@
         <p class="text-gray-500 font-bold text-lg">{{ __('تابع حالة وتفاصيل جميع طلباتك السابقة من مكان واحد') }}</p>
     </div>
 
+    @if(session('error'))
+        <div class="mb-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-black text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
+            {{ session('error') }}
+        </div>
+    @endif
+
+    @if(session('success'))
+        <div class="mb-6 rounded-2xl border border-green-200 bg-green-50 px-5 py-4 text-sm font-black text-green-700 dark:border-green-800 dark:bg-green-900/20 dark:text-green-300">
+            {{ session('success') }}
+        </div>
+    @endif
+
     @if($orders->count() > 0)
         <div class="grid grid-cols-1 gap-6 md:gap-8">
             @foreach($orders as $order)
@@ -40,6 +52,11 @@
 
                     <!-- تفاصيل الحالة والأزرار -->
                     <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div class="text-sm font-black text-gray-500 dark:text-gray-400">
+                            {{ __('طريقة الدفع:') }} <span class="text-gray-900 dark:text-white">{{ $order->payment_method_label }}</span>
+                            <span class="mx-2 text-gray-300">•</span>
+                            {{ __('حالة الدفع:') }} <span class="{{ $order->payment_status === 'paid' ? 'text-green-600' : ($order->payment_status === 'failed' ? 'text-red-600' : 'text-yellow-600') }}">{{ $order->payment_status_label }}</span>
+                        </div>
                         
                         @php
                             $statusStyles = [
@@ -56,9 +73,17 @@
                             <i class="fa-solid {{ $current['icon'] }}"></i> {{ $current['label'] }}
                         </div>
 
-                        <a href="{{ route('order.track.form') }}" class="w-full md:w-auto bg-gray-50 hover:bg-red-600 dark:bg-gray-900 dark:hover:bg-red-600 text-gray-700 dark:text-gray-200 hover:text-white px-6 py-3 rounded-xl font-bold transition-colors shadow-sm border border-gray-200 dark:border-gray-700 flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-location-crosshairs"></i> {{ __('تتبع الطلب') }}
-                        </a>
+                        <div class="flex w-full md:w-auto gap-3">
+                            @if($order->isPayable())
+                                <a href="{{ route('payments.paymob.retry', $order) }}" class="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-bold transition-colors shadow-sm flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-credit-card"></i> {{ __('إكمال الدفع') }}
+                                </a>
+                            @endif
+
+                            <a href="{{ route('order.track.form') }}" class="w-full md:w-auto bg-gray-50 hover:bg-red-600 dark:bg-gray-900 dark:hover:bg-red-600 text-gray-700 dark:text-gray-200 hover:text-white px-6 py-3 rounded-xl font-bold transition-colors shadow-sm border border-gray-200 dark:border-gray-700 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-location-crosshairs"></i> {{ __('تتبع الطلب') }}
+                            </a>
+                        </div>
                     </div>
 
                 </div>

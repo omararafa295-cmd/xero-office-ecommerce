@@ -40,4 +40,15 @@ return [
     'redirect' => env('GOOGLE_REDIRECT_URI'),
 ],
 
+    'paymob' => [
+        'base_url' => env('PAYMOB_BASE_URL', 'https://accept.paymob.com'),
+        'checkout_base_url' => env('PAYMOB_CHECKOUT_BASE_URL', 'https://accept.paymob.com'),
+        'secret_key' => env('PAYMOB_SECRET_KEY'),
+        'public_key' => env('PAYMOB_PUBLIC_KEY'),
+        'hmac_secret' => env('PAYMOB_HMAC_SECRET'),
+        'currency' => env('PAYMOB_CURRENCY', 'EGP'),
+        'card_integration_id' => env('PAYMOB_CARD_INTEGRATION_ID'),
+        'wallet_integration_id' => env('PAYMOB_WALLET_INTEGRATION_ID'),
+    ],
+
 ];

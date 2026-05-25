@@ -84,7 +84,10 @@
                 <div class="space-y-1 text-sm font-bold">
                     <p><span class="text-gray-400">{{ __('رقم الفاتورة:') }}</span> #{{ str_pad($order->id, 6, '0', STR_PAD_LEFT) }}</p>
                     <p><span class="text-gray-400">{{ __('تاريخ الطلب:') }}</span> {{ $order->created_at->format('Y/m/d') }}</p>
-                    <p><span class="text-gray-400">{{ __('طريقة الدفع:') }}</span> {{ __('نقداً عند الاستلام') }}</p>
+                    <p><span class="text-gray-400">{{ __('طريقة الدفع:') }}</span> {{ $order->payment_method_label }}</p>
+                    @if($order->wallet_number)
+                        <p><span class="text-gray-400">{{ __('رقم المحفظة:') }}</span> {{ $order->wallet_number }}</p>
+                    @endif
                     @if($order->coupon_code)
                         <p><span class="text-gray-400">{{ __('الكوبون المستخدم:') }}</span> <span class="text-green-600">{{ $order->coupon_code }}</span></p>
                     @endif

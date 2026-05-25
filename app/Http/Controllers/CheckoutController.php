@@ -1,22 +1,24 @@
 <?php
+
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Mail\OrderConfirmation;
+use App\Models\Coupon;
+use App\Models\Governorate;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Product;
-use App\Mail\OrderConfirmation;
-use Illuminate\Support\Facades\Mail;
+use App\Services\PaymobService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Cart;
-use App\Models\CartItem;
-use App\Models\Governorate;
-use App\Models\Coupon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
+use Illuminate\View\View;
 
 class CheckoutController extends Controller
 {
-    // عرض صفحة الدفع
-    public function index()
+    public function index(PaymobService $paymobService): View|RedirectResponse
     {
         $cartItems = [];
         $total = 0;
@@ -28,8 +30,6 @@ class CheckoutController extends Controller
                 $total = $cart->total;
             }
         } else {
-            // This block should ideally not be reached if 'verified' middleware is applied
-            // but keeping it for robustness or if guest checkout was allowed before.
             $sessionCart = session()->get('cart');
             if ($sessionCart) {
                 foreach ($sessionCart as $id => $details) {
@@ -41,127 +41,247 @@ class CheckoutController extends Controller
                             'name_ar' => $details['name_ar'],
                             'name_en' => $details['name_en'],
                             'image' => $details['image'],
-                        ]
+                        ],
                     ];
                     $total += $details['price'] * $details['quantity'];
                 }
             }
         }
-        
-        // لو السلة فاضية، نرجعه للرئيسية
-        if (empty($cartItems) || count($cartItems) == 0) { // Check if $cartItems is empty
-            return redirect()->route('home')->with('error', 'سلتك فارغة!');
+
+        if (empty($cartItems) || count($cartItems) === 0) {
+            return redirect()->route('home')->with('error', 'سلة التسوق فارغة.');
         }
 
         $governorates = Governorate::all();
-
         $discount = 0;
+        $paymobCardEnabled = $paymobService->isMethodConfigured('card');
+        $paymobWalletEnabled = $paymobService->isMethodConfigured('wallet');
+
         if (session()->has('coupon')) {
             $coupon = session()->get('coupon');
-            // حساب الخصم بناءً على نوعه (ثابت أو نسبة مئوية من إجمالي السلة)
-            $discount = $coupon['type'] == 'fixed' ? $coupon['value'] : ($total * ($coupon['value'] / 100));
+            $discount = $coupon['type'] === 'fixed'
+                ? $coupon['value']
+                : ($total * ($coupon['value'] / 100));
         }
 
-        // Pass cart items and total to the view
-        return view('checkout', compact('cartItems', 'total', 'governorates', 'discount'));
+        return view('checkout', compact(
+            'cartItems',
+            'total',
+            'governorates',
+            'discount',
+            'paymobCardEnabled',
+            'paymobWalletEnabled'
+        ));
     }
 
-    // حفظ الطلب في الداتا بيز
-    public function store(Request $request)
+    public function store(Request $request, PaymobService $paymobService): RedirectResponse
     {
-        // 1. التأكد من البيانات
         $request->validate([
             'phone' => 'required|string|max:20',
             'governorate' => 'required|exists:governorates,id',
             'address' => 'required|string|max:255',
+            'notes' => 'nullable|string|max:1000',
+            'payment_method' => 'required|in:cash,card,wallet',
+            'wallet_number' => 'nullable|required_if:payment_method,wallet|string|max:20',
         ]);
 
-        $user = Auth::user(); // Get authenticated user
-        // Get user's cart with items and their products eager loaded
+        if (
+            ($request->payment_method === 'card' && !$paymobService->isMethodConfigured('card'))
+            || ($request->payment_method === 'wallet' && !$paymobService->isMethodConfigured('wallet'))
+        ) {
+            return redirect()->route('checkout.index')->withInput()->with(
+                'error',
+                'وسيلة الدفع المحددة غير متاحة حاليًا. يرجى اختيار وسيلة أخرى.'
+            );
+        }
+
+        $user = Auth::user();
         $cart = $user->cart()->with('items.product')->first();
 
-        if (!$cart || $cart->items->isEmpty()) { // Check if cart exists and has items
-            return redirect()->route('home')->with('error', 'سلتك فارغة!');
+        if (!$cart || $cart->items->isEmpty()) {
+            return redirect()->route('home')->with('error', 'سلة التسوق فارغة.');
         }
 
-        // جلب المحافظة المختارة من الداتا بيز
-        $governorate = Governorate::findOrFail($request->governorate);
-        $shippingCost = $governorate->shipping_cost;
-
-        // 2. حساب الإجمالي الكلي
-        $subtotal = $cart->total; // Use the total from the Cart model
-        
-        $discount = 0;
-        $couponCode = null;
-        if (session()->has('coupon')) {
-            $coupon = session()->get('coupon');
-            $discount = $coupon['type'] == 'fixed' ? $coupon['value'] : ($subtotal * ($coupon['value'] / 100));
-            $couponCode = $coupon['code'];
-        }
-
-        $totalAmount = max(0, $subtotal - $discount) + $shippingCost; // نخصم من المنتجات فقط وليس من سعر الشحن
-        $fullAddress = $governorate->name_ar . ' - ' . $request->address;
-
-        // 3. إنشاء الطلب الأساسي
-        $order = Order::create([
-            'user_id' => $user->id, // Use authenticated user's ID
-            'customer_name' => $user->name, // Use authenticated user's name
-            'customer_phone' => $request->phone,
-            'customer_email' => $user->email, // Use authenticated user's email
-            'shipping_address' => $fullAddress,
-            'total_amount' => $totalAmount,
-            'discount_amount' => $discount,
-            'coupon_code' => $couponCode,
-            'payment_method' => 'cash',
-            'status' => 'pending'
-        ]);
-
-       // 4. حفظ المنتجات اللي جوه الطلب وخصمها من المخزن
-        foreach ($cart->items as $cartItem) { // Iterate through cart items from the database
-            // التأكد من توفر المخزون قبل أي شيء
-            if ($cartItem->product->stock < $cartItem->quantity) {
-                return redirect()->route('cart.index')->with('error', 
-                    __('عذراً، المنتج') . ' ' . $cartItem->product->name_ar . ' ' . __('غير متوفر بالكمية المطلوبة حالياً.')
+        foreach ($cart->items as $cartItem) {
+            if (!$cartItem->product || $cartItem->product->stock < $cartItem->quantity) {
+                return redirect()->route('cart.index')->with(
+                    'error',
+                    __('المنتج') . ' ' . optional($cartItem->product)->name_ar . ' ' . __('غير متوفر بالكمية المطلوبة حاليًا.')
                 );
             }
+        }
 
-            // حفظ تفاصيل المنتج في الطلب
-            OrderItem::create([
-                'order_id' => $order->id,
-                'product_id' => $cartItem->product_id,
-                'product_name' => $cartItem->product->name_ar, // Access product name via relationship
-                'quantity' => $cartItem->quantity,
-                'price' => $cartItem->price
+        $governorate = Governorate::findOrFail($request->governorate);
+        $shippingCost = $governorate->shipping_cost;
+        $subtotal = $cart->total;
+
+        [$discount, $couponCode] = $this->couponData($subtotal);
+
+        $totalAmount = max(0, $subtotal - $discount) + $shippingCost;
+        $fullAddress = $governorate->name_ar . ' - ' . $request->address;
+
+        $order = DB::transaction(function () use ($user, $cart, $request, $fullAddress, $totalAmount, $discount, $couponCode) {
+            $order = Order::create([
+                'user_id' => $user->id,
+                'customer_name' => $user->name,
+                'customer_phone' => $request->phone,
+                'customer_email' => $user->email,
+                'shipping_address' => $fullAddress,
+                'notes' => $request->notes,
+                'total_amount' => $totalAmount,
+                'discount_amount' => $discount,
+                'coupon_code' => $couponCode,
+                'payment_method' => $request->payment_method,
+                'payment_status' => $request->payment_method === 'cash' ? 'cash_on_delivery' : 'pending',
+                'wallet_number' => $request->payment_method === 'wallet' ? $request->wallet_number : null,
+                'payment_reference' => 'XO-' . strtoupper(Str::random(10)),
+                'status' => 'pending',
             ]);
 
-            // خصم الكمية من مخزون المنتج
-            $product = $cartItem->product; // Product is already loaded
-            if ($product) {
-                $product->decrement('stock', $cartItem->quantity);
+            foreach ($cart->items as $cartItem) {
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $cartItem->product_id,
+                    'product_name' => $cartItem->product->name_ar,
+                    'quantity' => $cartItem->quantity,
+                    'price' => $cartItem->price,
+                ]);
             }
+
+            return $order->load('items.product', 'user');
+        });
+
+        if ($order->payment_method === 'cash') {
+            $this->finalizeOrder($order);
+
+            return redirect()->route('checkout.success')->with([
+                'order_id' => $order->id,
+                'payment_method_label' => $order->payment_method_label,
+            ]);
         }
 
-        // 5. تفريغ السلة وتوجيه العميل لصفحة النجاح
-        $cart->items()->delete(); // Clear cart items from database
-        $cart->delete(); // Delete the cart itself
+        try {
+            $intention = $paymobService->createIntention($order);
 
-        // زيادة عدد مرات استخدام الكوبون وحذفه من الجلسة
-        if (session()->has('coupon')) {
-            Coupon::where('code', session()->get('coupon')['code'])->increment('used_count');
-            session()->forget('coupon');
+            $order->update([
+                'paymob_intention_id' => $intention['intention_id'] ?: null,
+                'paymob_client_secret' => $intention['client_secret'],
+                'paymob_checkout_url' => $intention['checkout_url'],
+                'payment_payload' => json_encode($intention['payload'], JSON_UNESCAPED_UNICODE),
+            ]);
+
+            return redirect()->away($intention['checkout_url']);
+        } catch (\Throwable $e) {
+            $order->update([
+                'payment_status' => 'failed',
+                'payment_payload' => json_encode([
+                    'error' => $e->getMessage(),
+                ], JSON_UNESCAPED_UNICODE),
+            ]);
+
+            return redirect()->route('my.orders')->with('error', $this->paymobErrorMessage($e));
         }
-
-        $order->loadMissing('items');
-        Mail::to($user->email)->send(new OrderConfirmation($order));
-        return redirect()->route('checkout.success')->with('order_id', $order->id);
     }
 
-    // عرض صفحة نجاح الطلب
-    public function success()
+    public function success(): View|RedirectResponse
     {
         if (!session('order_id')) {
             return redirect()->route('home');
         }
+
         return view('checkout-success');
+    }
+
+    public function finalizeOrder(Order $order): void
+    {
+        $order->loadMissing('items.product', 'user');
+
+        if ($order->finalized_at) {
+            return;
+        }
+
+        DB::transaction(function () use ($order) {
+            $order->refresh()->loadMissing('items.product', 'user');
+
+            if ($order->finalized_at) {
+                return;
+            }
+
+            foreach ($order->items as $item) {
+                if ($item->product) {
+                    $item->product->decrement('stock', $item->quantity);
+                }
+            }
+
+            if ($order->user) {
+                $cart = $order->user->cart()->with('items')->first();
+
+                if ($cart) {
+                    foreach ($order->items as $orderItem) {
+                        $cartItem = $cart->items->firstWhere('product_id', $orderItem->product_id);
+
+                        if (!$cartItem) {
+                            continue;
+                        }
+
+                        if ($cartItem->quantity > $orderItem->quantity) {
+                            $cartItem->decrement('quantity', $orderItem->quantity);
+                        } else {
+                            $cartItem->delete();
+                        }
+                    }
+
+                    if ($cart->items()->count() === 0) {
+                        $cart->delete();
+                    }
+                }
+            }
+
+            if ($order->coupon_code) {
+                Coupon::where('code', $order->coupon_code)->increment('used_count');
+                if (session()->has('coupon') && session()->get('coupon')['code'] === $order->coupon_code) {
+                    session()->forget('coupon');
+                }
+            }
+
+            $order->update([
+                'paid_at' => $order->payment_method === 'cash' ? null : now(),
+                'finalized_at' => now(),
+            ]);
+        });
+
+        if ($order->customer_email) {
+            Mail::to($order->customer_email)->send(new OrderConfirmation($order->fresh('items.product', 'user')));
+        }
+    }
+
+    protected function couponData(float $subtotal): array
+    {
+        $discount = 0;
+        $couponCode = null;
+
+        if (session()->has('coupon')) {
+            $coupon = session()->get('coupon');
+            $discount = $coupon['type'] === 'fixed'
+                ? $coupon['value']
+                : ($subtotal * ($coupon['value'] / 100));
+            $couponCode = $coupon['code'];
+        }
+
+        return [$discount, $couponCode];
+    }
+
+    protected function paymobErrorMessage(\Throwable $e): string
+    {
+        $message = $e->getMessage();
+
+        return match (true) {
+            str_contains($message, 'integration id is missing') => 'وسيلة الدفع المحددة غير متاحة حاليًا. يرجى اختيار وسيلة أخرى.',
+            str_contains($message, 'Integration ID/Name does not exist') => 'وسيلة الدفع المحددة غير متاحة حاليًا. يرجى اختيار وسيلة أخرى.',
+            str_contains($message, 'public key is missing') => 'خدمة الدفع غير متاحة حاليًا. يرجى المحاولة مرة أخرى لاحقًا.',
+            str_contains($message, 'secret key is missing') => 'خدمة الدفع غير متاحة حاليًا. يرجى المحاولة مرة أخرى لاحقًا.',
+            str_contains($message, 'unmatched_item_prices') => 'تعذر تجهيز عملية الدفع حاليًا. يرجى المحاولة مرة أخرى.',
+            default => 'تعذر بدء عملية الدفع حاليًا. يرجى المحاولة مرة أخرى.',
+        };
     }
 }
