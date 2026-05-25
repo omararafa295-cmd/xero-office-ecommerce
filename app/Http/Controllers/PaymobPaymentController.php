@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 class PaymobPaymentController extends Controller
@@ -73,6 +74,19 @@ class PaymobPaymentController extends Controller
     public function webhook(Request $request, CheckoutController $checkoutController): JsonResponse
     {
         $payload = $request->json()->all() ?: $request->all();
+        $receivedHmac = (string) ($request->input('hmac') ?? $request->query('hmac') ?? '');
+
+        if (!$this->isValidWebhookHmac($payload, $receivedHmac)) {
+            Log::warning('Rejected Paymob webhook due to invalid HMAC signature.', [
+                'order_reference' => data_get($payload, 'obj.order.merchant_order_id')
+                    ?? data_get($payload, 'merchant_order_id')
+                    ?? data_get($payload, 'obj.extras.payment_reference')
+                    ?? data_get($payload, 'extras.payment_reference'),
+                'transaction_id' => data_get($payload, 'obj.id') ?? data_get($payload, 'id'),
+            ]);
+
+            return response()->json(['ok' => false, 'message' => 'Invalid signature.'], 403);
+        }
 
         $order = $this->resolveOrderFromPayload($payload);
 
@@ -137,6 +151,61 @@ class PaymobPaymentController extends Controller
             'paymob_transaction_id' => $transactionId ? (string) $transactionId : $order->paymob_transaction_id,
             'payment_payload' => json_encode($payload, JSON_UNESCAPED_UNICODE),
         ]);
+    }
+
+    protected function isValidWebhookHmac(array $payload, string $receivedHmac): bool
+    {
+        $secret = (string) config('services.paymob.hmac_secret');
+
+        if ($secret === '' || $receivedHmac === '') {
+            return false;
+        }
+
+        $transaction = data_get($payload, 'obj', $payload);
+
+        $fields = [
+            data_get($transaction, 'amount_cents'),
+            data_get($transaction, 'created_at'),
+            data_get($transaction, 'currency'),
+            data_get($transaction, 'error_occured'),
+            data_get($transaction, 'has_parent_transaction'),
+            data_get($transaction, 'id'),
+            data_get($transaction, 'integration_id'),
+            data_get($transaction, 'is_3d_secure'),
+            data_get($transaction, 'is_auth'),
+            data_get($transaction, 'is_capture'),
+            data_get($transaction, 'is_refunded'),
+            data_get($transaction, 'is_standalone_payment'),
+            data_get($transaction, 'is_voided'),
+            data_get($transaction, 'order.id'),
+            data_get($transaction, 'owner'),
+            data_get($transaction, 'pending'),
+            data_get($transaction, 'source_data.pan'),
+            data_get($transaction, 'source_data.sub_type'),
+            data_get($transaction, 'source_data.type'),
+            data_get($transaction, 'success'),
+        ];
+
+        $concatenated = collect($fields)
+            ->map(fn ($value) => $this->stringifyHmacValue($value))
+            ->implode('');
+
+        $calculatedHmac = hash_hmac('sha512', $concatenated, $secret);
+
+        return hash_equals(strtolower($calculatedHmac), strtolower($receivedHmac));
+    }
+
+    protected function stringifyHmacValue(mixed $value): string
+    {
+        if (is_bool($value)) {
+            return $value ? 'true' : 'false';
+        }
+
+        if ($value === null) {
+            return '';
+        }
+
+        return (string) $value;
     }
 
     protected function paymobErrorMessage(\Throwable $e): string
