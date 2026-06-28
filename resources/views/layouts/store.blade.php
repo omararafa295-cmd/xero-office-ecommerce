@@ -21,13 +21,12 @@
     <meta name="twitter:description" content="@yield('meta_description', __('الوجهة الأولى لحلول الطباعة المتكاملة والأدوات المكتبية.'))">
     <meta name="twitter:image" content="@yield('meta_image', asset('images/logo.png'))">
     <link rel="icon" href="{{ asset('images/logo.png') }}" type="image/png">
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/store.js'])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     
     <script>
-        tailwind.config = { darkMode: 'class' }
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark')
         } else {
@@ -77,13 +76,9 @@
                         </a>
                         
                         <div class="absolute right-0 top-14 w-56 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 overflow-hidden z-50 transform origin-top scale-95 group-hover:scale-100">
-                            @php
-                                $nav_categories = \App\Models\Category::all();
-                            @endphp
-                            
-                            @if($nav_categories->count() > 0)
+                            @if($navCategories->count() > 0)
                                 <div class="py-2">
-                                    @foreach($nav_categories as $nav_cat)
+                                    @foreach($navCategories as $nav_cat)
                                         <a href="{{ route('category.show', $nav_cat->name_en) }}" class="flex items-center gap-3 px-4 py-3 hover:bg-red-50 dark:hover:bg-gray-700 transition-colors border-b border-gray-50 dark:border-gray-700/50 last:border-0 group/item">
                                             <i class="fa-solid fa-angle-left text-[10px] text-gray-400 group-hover/item:text-red-600 transition-colors"></i>
                                             <span class="text-sm font-bold text-gray-700 dark:text-gray-300 group-hover/item:text-red-600">
@@ -123,31 +118,14 @@
                     <i class="fa-solid fa-sun hidden dark:inline"></i>
                 </button>
 
-                <a href="{{ route('favorites.index') ?? '#' }}" class="relative text-gray-400 hover:text-red-600 transition-colors text-lg md:text-xl hidden sm:block">
+                <a href="{{ route('favorites.index') }}" class="relative text-gray-400 hover:text-red-600 transition-colors text-lg md:text-xl hidden sm:block">
                     <i class="fa-solid fa-heart"></i>
-                    @auth
-                        @php $favCount = \App\Models\Favorite::where('user_id', auth()->id())->count(); @endphp
-                        @if($favCount > 0)
-                            <span class="absolute -top-2 {{ app()->getLocale() == 'ar' ? '-left-2' : '-right-2' }} bg-red-600 text-white text-[10px] font-bold h-4 w-4 flex items-center justify-center rounded-full shadow-sm">{{ $favCount }}</span>
-                        @endif
-                    @endauth
+                    @if($favCount > 0)
+                        <span class="absolute -top-2 {{ app()->getLocale() == 'ar' ? '-left-2' : '-right-2' }} bg-red-600 text-white text-[10px] font-bold h-4 w-4 flex items-center justify-center rounded-full shadow-sm">{{ $favCount }}</span>
+                    @endif
                 </a>
                  <a href="{{ route('cart.index') }}" class="relative text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors text-lg md:text-xl ml-1">
                     <i class="fa-solid fa-cart-shopping"></i>
-                    @php
-                        $cartCount = 0;
-                        if (auth()->check()) {
-                            $userCart = auth()->user()->cart;
-                            if ($userCart) {
-                                $cartCount = $userCart->items->sum('quantity');
-                            }
-                        } else {
-                            $sessionCart = session('cart');
-                            if ($sessionCart) {
-                                $cartCount = array_sum(array_column($sessionCart, 'quantity'));
-                            }
-                        }
-                    @endphp
                     @if($cartCount > 0)
                         <span class="absolute -top-2 {{ app()->getLocale() == 'ar' ? '-left-2' : '-right-2' }} bg-gray-900 dark:bg-gray-600 text-white text-[10px] font-bold h-4 w-4 flex items-center justify-center rounded-full shadow-sm">{{ $cartCount }}</span>
                     @endif
@@ -300,9 +278,8 @@
                         <i id="mobileCatIcon" class="fa-solid fa-chevron-down text-sm transition-transform duration-300 text-gray-400"></i>
                     </button>
                     <div id="mobileCatMenu" class="hidden flex-col pl-4 pr-10 py-2 space-y-2 border-l-2 border-gray-100 dark:border-gray-700 ml-2 mr-5">
-                        @php $nav_categories = \App\Models\Category::all(); @endphp
-                        @if($nav_categories->count() > 0)
-                            @foreach($nav_categories as $nav_cat)
+                        @if($navCategories->count() > 0)
+                            @foreach($navCategories as $nav_cat)
                                 <a href="{{ route('category.show', $nav_cat->name_en) }}" class="block text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-red-600 transition py-1.5">
                                     {{ app()->getLocale() == 'ar' ? $nav_cat->name_ar : $nav_cat->name_en }}
                                 </a>
@@ -390,115 +367,13 @@
 
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
-        AOS.init({
-            once: true,
-            offset: 50,
-            duration: 800
-        });
-
-        // سكريبت القائمة الجانبية (Sidebar) وتفاعلات الموبايل
-        document.addEventListener('DOMContentLoaded', function() {
-            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-            const mobileSidebar = document.getElementById('mobileSidebar');
-            const sidebarBackdrop = document.getElementById('sidebarBackdrop');
-            const closeSidebarBtn = document.getElementById('closeSidebarBtn');
-            const mobileSearchBtn = document.getElementById('mobileSearchBtn');
-            const mobileSearchContainer = document.getElementById('mobileSearchContainer');
-            const mobileCatToggle = document.getElementById('mobileCatToggle');
-            const mobileCatMenu = document.getElementById('mobileCatMenu');
-            const mobileCatIcon = document.getElementById('mobileCatIcon');
-            const isRtl = document.documentElement.dir === 'rtl';
-
-            // دالة لفتح واغلاق القائمة
-            function toggleSidebar() {
-                sidebarBackdrop.classList.toggle('hidden');
-                setTimeout(() => sidebarBackdrop.classList.toggle('opacity-0'), 10); // لعمل Animation
-                
-                if (isRtl) {
-                    mobileSidebar.classList.toggle('translate-x-full');
-                } else {
-                    mobileSidebar.classList.toggle('-translate-x-full');
-                }
-                document.body.classList.toggle('overflow-hidden'); // منع التمرير تحت القائمة
-            }
-
-            mobileMenuBtn?.addEventListener('click', toggleSidebar);
-            closeSidebarBtn?.addEventListener('click', toggleSidebar);
-            sidebarBackdrop?.addEventListener('click', toggleSidebar);
-
-            // زر البحث للموبايل
-            mobileSearchBtn?.addEventListener('click', function() {
-                mobileSearchContainer.classList.toggle('hidden');
-                if (!mobileSearchContainer.classList.contains('hidden')) {
-                    document.getElementById('mobileSearchInput').focus();
-                }
-            });
-
-            // القائمة المنسدلة للأقسام داخل الموبايل
-            mobileCatToggle?.addEventListener('click', function() {
-                mobileCatMenu.classList.toggle('hidden');
-                mobileCatMenu.classList.toggle('flex');
-                mobileCatIcon.classList.toggle('rotate-180');
-            });
-        });
-    </script>
-    <script>
-        const searchInput = document.getElementById('searchInput');
-        const searchSuggestions = document.getElementById('searchSuggestions');
-        const currentLang = document.documentElement.lang; // بنجيب لغة الموقع الحالية
-
-        // دالة موحدة لتشغيل اقتراحات البحث للموبايل والكمبيوتر
-        const setupSearch = (input, suggestionsContainer) => {
-            if(input && suggestionsContainer) {
-                input.addEventListener('input', function() {
-                    let query = this.value;
-                    if(query.length > 1) { 
-                        fetch(`/search-suggestions?query=${query}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            suggestionsContainer.innerHTML = '';
-                            if(data.length > 0) {
-                                suggestionsContainer.classList.remove('hidden');
-                                data.forEach(product => {
-                                    let productName = currentLang === 'ar' ? product.name_ar : (product.name_en || product.name_ar);
-                                    
-                                    suggestionsContainer.innerHTML += `
-                                        <a href="/product/${product.id}" class="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-50 dark:border-gray-700 last:border-0 transition-colors">
-                                            <img src="/storage/${product.image}" class="w-10 h-10 rounded-lg object-contain bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-600">
-                                            <div class="flex-1">
-                                                <h4 class="text-sm font-bold text-gray-900 dark:text-white line-clamp-1">${productName}</h4>
-                                                <span class="text-xs font-black text-red-600">${product.price} ج.م</span>
-                                            </div>
-                                        </a>
-                                    `;
-                                });
-                            } else {
-                                suggestionsContainer.innerHTML = `<div class="p-4 text-center text-sm font-bold text-gray-500">{{ __('لا توجد منتجات مطابقة 😔') }}</div>`;
-                                suggestionsContainer.classList.remove('hidden');
-                            }
-                        });
-                    } else {
-                        suggestionsContainer.classList.add('hidden');
-                    }
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.AOS) {
+                AOS.init({
+                    once: true,
+                    offset: 50,
+                    duration: 800,
                 });
-            }
-        }
-
-        setupSearch(document.getElementById('searchInput'), document.getElementById('searchSuggestions'));
-        setupSearch(document.getElementById('mobileSearchInput'), document.getElementById('mobileSearchSuggestions'));
-
-        // إخفاء نتائج البحث عند النقر في أي مكان آخر
-        document.addEventListener('click', function(e) {
-            const searchInput = document.getElementById('searchInput');
-            const searchSuggestions = document.getElementById('searchSuggestions');
-            const mobileSearchInput = document.getElementById('mobileSearchInput');
-            const mobileSearchSuggestions = document.getElementById('mobileSearchSuggestions');
-
-            if(searchInput && !searchInput.contains(e.target) && !searchSuggestions.contains(e.target)) {
-                searchSuggestions.classList.add('hidden');
-            }
-            if(mobileSearchInput && !mobileSearchInput.contains(e.target) && !mobileSearchSuggestions.contains(e.target)) {
-                mobileSearchSuggestions.classList.add('hidden');
             }
         });
     </script>
