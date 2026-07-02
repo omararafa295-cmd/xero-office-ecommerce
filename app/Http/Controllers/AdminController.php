@@ -32,11 +32,15 @@ public function index(Request $request)
 
     // الإحصائيات العلوية
     $total_products = Product::count();
-    $total_orders = Order::when($startDate, fn($q) => $q->where('created_at', '>=', $startDate))->count();
+    $total_orders = Order::where('status', '!=', 'cancelled')
+        ->when($startDate, fn($q) => $q->where('created_at', '>=', $startDate))
+        ->count();
     $total_customers = User::where('is_admin', false)->when($startDate, fn($q) => $q->where('created_at', '>=', $startDate))->count();
-    $total_sales = Order::where('status', 'delivered')->when($startDate, fn($q) => $q->where('created_at', '>=', $startDate))->sum('total_amount');
+    $total_sales = Order::whereIn('status', ['shipped', 'delivered'])
+        ->when($startDate, fn($q) => $q->where('created_at', '>=', $startDate))
+        ->sum('total_amount');
 
-    $recent_orders = Order::latest()->take(5)->get();
+    $recent_orders = Order::where('status', '!=', 'cancelled')->latest()->take(5)->get();
     $best_sellers = Product::whereHas('orderItems')
         ->withCount(['orderItems as total_sold' => function($query) {
             $query->select(DB::raw('sum(quantity)'));
@@ -55,14 +59,14 @@ public function index(Request $request)
             $chartDates[] = $date->format('M Y');
             $chartTotals[] = Order::whereMonth('created_at', $date->month)
                                   ->whereYear('created_at', $date->year)
-                                  ->where('status', 'delivered')->sum('total_amount');
+                                  ->whereIn('status', ['shipped', 'delivered'])->sum('total_amount');
         }
     } elseif ($filter == 'month') {
         for ($i = 29; $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i);
             $chartDates[] = $date->format('d M');
             $chartTotals[] = Order::whereDate('created_at', $date->format('Y-m-d'))
-                                  ->where('status', 'delivered')->sum('total_amount');
+                                  ->whereIn('status', ['shipped', 'delivered'])->sum('total_amount');
         }
     } elseif ($filter == 'today') {
         // لو اختار "اليوم": هنعرض المبيعات كل ساعتين
@@ -72,7 +76,7 @@ public function index(Request $request)
             $start = $date->copy()->startOfHour();
             $end = $date->copy()->addHour()->endOfHour();
             $chartTotals[] = Order::whereBetween('created_at', [$start, $end])
-                                  ->where('status', 'delivered')->sum('total_amount');
+                                  ->whereIn('status', ['shipped', 'delivered'])->sum('total_amount');
         }
     } else {
         // الأسبوع
@@ -80,7 +84,7 @@ public function index(Request $request)
             $date = Carbon::now()->subDays($i);
             $chartDates[] = $date->format('d M');
             $chartTotals[] = Order::whereDate('created_at', $date->format('Y-m-d'))
-                                  ->where('status', 'delivered')->sum('total_amount');
+                                  ->whereIn('status', ['shipped', 'delivered'])->sum('total_amount');
         }
     }
 

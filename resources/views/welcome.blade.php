@@ -192,9 +192,9 @@
         </div>
     </div>
 
-    <div id="latest-products-container" class="flex gap-4 sm:gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-6 sm:pb-8 hide-scrollbar">
+    <div id="latest-products-container" class="flex gap-4 sm:gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-6 sm:pb-8 hide-scrollbar px-4 sm:px-0">
         @foreach($products as $index => $product)
-            <div class="flex-none w-[80%] sm:w-[calc(50%-12px)] md:w-[calc(33.333%-16px)] lg:w-[calc(25%-18px)] snap-start bg-white dark:bg-gray-800 rounded-2xl md:rounded-3xl shadow-md border-2 border-gray-200 dark:border-gray-700 hover:border-red-500 dark:hover:border-red-500 overflow-hidden group hover:shadow-[0_10px_30px_rgba(220,38,38,0.15)] transition-all duration-300 relative flex flex-col" data-aos="zoom-in" data-aos-delay="{{ $index * 100 }}">
+            <div class="flex-none w-[88vw] sm:w-[46vw] md:w-[calc(33.333%-16px)] lg:w-[calc(25%-18px)] max-w-[340px] snap-start bg-white dark:bg-gray-800 rounded-2xl md:rounded-3xl shadow-md border-2 border-gray-200 dark:border-gray-700 hover:border-red-500 dark:hover:border-red-500 overflow-hidden group hover:shadow-[0_10px_30px_rgba(220,38,38,0.15)] transition-all duration-300 relative flex flex-col" data-aos="zoom-in" data-aos-delay="{{ $index * 100 }}">
                 <div class="absolute top-4 left-4 z-20">
                     <form action="{{ route('products.favorite', $product->id) }}" method="POST" class="favorite-form">
                         @csrf

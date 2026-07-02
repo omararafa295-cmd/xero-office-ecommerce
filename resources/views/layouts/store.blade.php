@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() == 'ar' ? 'rtl' : 'ltr' }}">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() == 'ar' ? 'rtl' : 'ltr' }}" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -32,9 +32,28 @@
         } else {
             document.documentElement.classList.remove('dark')
         }
+
+        function updateThemeToggleIcon() {
+            const moon = document.getElementById('themeIconMoon');
+            const sun = document.getElementById('themeIconSun');
+            if (!moon || !sun) return;
+            if (document.documentElement.classList.contains('dark')) {
+                moon.style.display = 'none';
+                sun.style.display = 'inline';
+            } else {
+                moon.style.display = 'inline';
+                sun.style.display = 'none';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateThemeToggleIcon();
+        });
+
         function toggleTheme() {
             document.documentElement.classList.toggle('dark');
             localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+            updateThemeToggleIcon();
         }
     </script>
 
@@ -113,9 +132,9 @@
                     <i class="fa-solid fa-magnifying-glass"></i>
                 </button>
 
-                <button onclick="toggleTheme()" class="text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors text-lg md:text-xl">
-                    <i class="fa-solid fa-moon dark:hidden"></i>
-                    <i class="fa-solid fa-sun hidden dark:inline"></i>
+                <button onclick="toggleTheme()" aria-label="{{ __('تبديل الوضع') }}" class="inline-flex items-center justify-center w-11 h-11 rounded-full bg-gray-100/90 dark:bg-gray-700/80 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 text-base sm:text-xl">
+                    <i id="themeIconMoon" class="fa-solid fa-moon" style="display: inline"></i>
+                    <i id="themeIconSun" class="fa-solid fa-sun" style="display: none"></i>
                 </button>
 
                 <a href="{{ route('favorites.index') }}" class="relative text-gray-400 hover:text-red-600 transition-colors text-lg md:text-xl hidden sm:block">
@@ -375,6 +394,23 @@
                     duration: 800,
                 });
             }
+
+            document.querySelectorAll('a[href*="#"]').forEach(function(link) {
+                link.addEventListener('click', function(event) {
+                    const url = new URL(this.href, window.location.origin);
+                    const currentPath = window.location.pathname.replace(/\/$/, '');
+                    const linkPath = url.pathname.replace(/\/$/, '');
+                    if (!url.hash) return;
+                    if (linkPath === currentPath) {
+                        const target = document.querySelector(url.hash);
+                        if (target) {
+                            event.preventDefault();
+                            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            history.replaceState(null, '', url.hash);
+                        }
+                    }
+                });
+            });
         });
     </script>
     <a href="https://wa.me/201223635861" target="_blank" rel="noopener noreferrer" class="fixed bottom-8 left-8 z-50 flex items-center justify-center w-14 h-14 bg-green-500 text-white rounded-full shadow-[0_4px_14px_0_rgba(34,197,94,0.5)] hover:bg-green-600 hover:scale-110 hover:shadow-[0_6px_20px_rgba(34,197,94,0.4)] transition-all duration-300 group">
